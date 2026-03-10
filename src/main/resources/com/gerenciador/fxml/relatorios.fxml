@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.shape.SVGPath?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.util.Duration?>
+
+<AnchorPane fx:id="pane" styleClass="clientes-pane" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gerenciador.controller.RelatoriosController">
+    <children>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent; -fx-background: transparent;" vbarPolicy="AS_NEEDED" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <content>
+                <VBox spacing="40.0" style="-fx-padding: 30px; -fx-background-color: transparent;">
+
+                    <HBox alignment="CENTER_LEFT" spacing="5" maxWidth="Infinity">
+                        <VBox alignment="CENTER_LEFT" minWidth="350.0">
+                            <Label styleClass="h1-formulario" text="Painel de Indicadores" />
+                            <Label fx:id="labelModulo" style="-fx-font-size: 24px; -fx-text-fill: #666666; -fx-font-weight: bold;" text="Módulo de Compras Total" />
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <ScrollPane fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER"
+                                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;"
+                                    VBox.vgrow="NEVER">
+                            <content>
+                                <HBox alignment="CENTER_RIGHT"  spacing="15" style="-fx-padding: 15; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+                                    <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" minWidth="293.0" styleClass="search-box-container" HBox.hgrow="ALWAYS">
+                                        <children>
+                                            <SVGPath content="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" styleClass="search-icon" />
+                                            <TextField fx:id="campoPesquisa"  prefHeight="24.0" promptText="Pesquisar..." styleClass="search-field-transparent" HBox.hgrow="ALWAYS" />
+                                        </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER_LEFT" spacing="10">
+                                        <Label style="-fx-font-weight: bold; -fx-text-fill: #666;" text="Análise:" />
+                                        <ComboBox fx:id="filtroAnalise" prefHeight="40.0" prefWidth="140.0" styleClass="combo-filtro" />
+                                    </HBox>
+                                    <HBox alignment="CENTER_LEFT" spacing="10">
+                                        <VBox maxHeight="30.0" prefWidth="1.0" style="-fx-background-color: #E0E0E0;" />
+                                        <Label style="-fx-font-weight: bold; -fx-text-fill: #666;" text="Tipo:" />
+                                        <ComboBox fx:id="filtroPeriodo" prefHeight="40.0" prefWidth="120.0" styleClass="combo-filtro" />
+                                    </HBox>
+                                    <HBox fx:id="boxFiltroAno" alignment="CENTER_LEFT" spacing="10">
+                                        <VBox maxHeight="30.0" prefWidth="1.0" style="-fx-background-color: #E0E0E0;" />
+                                        <Label style="-fx-font-weight: bold; -fx-text-fill: #666;" text="Ano:" />
+                                        <ComboBox fx:id="filtroAno" prefHeight="40.0" prefWidth="100.0" styleClass="combo-filtro" />
+                                    </HBox>
+                                    <HBox fx:id="boxFiltroMes" alignment="CENTER_LEFT" spacing="10">
+                                        <VBox maxHeight="30.0" prefWidth="1.0" style="-fx-background-color: #E0E0E0;" />
+                                        <Label style="-fx-font-weight: bold; -fx-text-fill: #666;" text="Mês:" />
+                                        <ComboBox fx:id="filtroMes" prefHeight="40.0" prefWidth="150.0" styleClass="combo-filtro" />
+                                    </HBox>
+                                </HBox>
+                            </content>
+                        </ScrollPane>
+                    </HBox>
+
+                    <VBox fx:id="boxCompras" spacing="40.0" VBox.vgrow="ALWAYS" visible="true" managed="true">
+                        <HBox alignment="CENTER" prefHeight="130.0"  spacing="25">
+                            <HBox alignment="CENTER_LEFT"  prefWidth="400" spacing="10" style="-fx-padding:20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+                                <ImageView fitHeight="60" fitWidth="60" preserveRatio="true"><image><Image url="@/com/gerenciador/icons/money.png"/></image></ImageView>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <VBox alignment="CENTER_RIGHT" >
+                                    <Label style="-fx-font-size: 18px; -fx-text-fill: #666;" styleClass="label-h2-relatorio" text="Total Comprado" />
+                                    <Label fx:id="labelValorTotalCompras"  styleClass="numero-destaque" text="R$ 0,00" /> </VBox>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT"  prefWidth="400" spacing="10" style="-fx-padding:20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+                                <ImageView fitHeight="60" fitWidth="60" preserveRatio="true"><image><Image url="@/com/gerenciador/icons/kilo.png"/></image></ImageView>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <VBox alignment="CENTER_RIGHT" >
+                                    <Label style="-fx-font-size: 18px; -fx-text-fill: #666;" styleClass="label-h2-relatorio" text="Kilos Comprados" />
+                                    <Label fx:id="labelKilosComprados"   styleClass="numero-destaque" text="0,00 kg"/>
+                                </VBox>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT"  prefWidth="400" spacing="10" style="-fx-padding:20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+                                <ImageView fitHeight="60" fitWidth="60" preserveRatio="true"><image><Image url="@/com/gerenciador/icons/list.png"/></image></ImageView>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <VBox alignment="CENTER_RIGHT" >
+                                    <Label style="-fx-font-size: 16px; -fx-text-fill: #666;" styleClass="label-h2-relatorio" text="Número de Pedidos" />
+                                    <Label fx:id="labelNumeroCompras" styleClass="numero-destaque"  text="0" />
+                                </VBox>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT"  prefWidth="400" spacing="10" style="-fx-padding:20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+                                <ImageView fitHeight="60" fitWidth="60" preserveRatio="true"><image><Image url="@/com/gerenciador/icons/truck.png"/></image></ImageView>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <VBox alignment="CENTER_RIGHT" >
+                                    <Label style="-fx-font-size: 16px; -fx-text-fill: #666;" styleClass="label-h2-relatorio" text="Total de Fornecedores" />
+                                    <Label fx:id="labelFornecedoresTotais" styleClass="numero-destaque"  text="0" />
+                                </VBox>
+                            </HBox>
+                        </HBox>
+
+                        <VBox spacing="20" fx:id="boxGraficoEvolucaoCompras" managed="false" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" visible="false">
+                            <Label styleClass="label-h2-relatorio" text="Evolução de Gastos Mensais" />
+                            <BarChart fx:id="graficoBarrasEvolucaoCompras" legendVisible="false" prefHeight="250.0" style="-fx-background-color: transparent;">
+                                <xAxis><CategoryAxis fx:id="eixoXMesesCompras" label="Meses"  /></xAxis>
+                                <yAxis><NumberAxis label="Valor Gasto (R$)" tickLabelFill="#666666" /></yAxis>
+                            </BarChart>
+                        </VBox>
+
+                        <HBox spacing="25">
+                            <VBox spacing="20" alignment="CENTER_LEFT" maxWidth="600" minWidth="600" maxHeight="200" prefHeight="200" style="-fx-padding: 20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                                <Label styleClass="label-h2-relatorio" text="Distribuição Matérias-Primas" />
+                                <HBox alignment="CENTER_LEFT" spacing="20" VBox.vgrow="ALWAYS">
+                                    <StackPane prefHeight="100" maxHeight="100" prefWidth="250">
+                                        <PieChart fx:id="graficoPizzaMaterias" legendVisible="false" labelsVisible="false" />
+                                        <Circle radius="25" fill="white"/>
+                                    </StackPane>
+                                    <VBox fx:id="legendaMaterias" maxHeight="150" minHeight="150" prefHeight="200" maxWidth="340" prefWidth="340" minWidth="340" alignment="CENTER" style="-fx-border-color: #D3D3D3; -fx-border-radius: 8px; -fx-padding: 15px; -fx-background-color: #FAFAFA; -fx-background-radius: 8px;" HBox.hgrow="ALWAYS" />
+                                </HBox>
+                            </VBox>
+                            <VBox style="-fx-background-color: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" styleClass="box-tabela" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                                <TableView fx:id="tabelaProdutos" prefHeight="250.0" styleClass="tabela-custom">
+                                    <columns>
+                                        <TableColumn sortable="true"  fx:id="colProdNome" minWidth="150" prefWidth="250" text="Matéria-Prima" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colProdPedidos" minWidth="80" prefWidth="100" text="Nº Pedidos" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colProdValor" minWidth="120" prefWidth="150" text="Total Gasto" reorderable="false"/>
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                </TableView>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="25">
+                            <VBox spacing="20" alignment="CENTER_LEFT" maxWidth="600" minWidth="600" maxHeight="200" prefHeight="200" style="-fx-padding: 20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                                <Label styleClass="label-h2-relatorio" text="Distribuição Fornedores" />
+                                <HBox alignment="CENTER_LEFT" spacing="20" VBox.vgrow="ALWAYS">
+                                    <StackPane prefHeight="100" maxHeight="100" prefWidth="250">
+                                        <PieChart fx:id="graficoPizzaFornecedores" legendVisible="false" labelsVisible="false" />
+                                        <Circle radius="25" fill="white"/>
+                                    </StackPane>
+                                    <VBox fx:id="legendaFornecedores" maxHeight="150" minHeight="150" prefHeight="200" maxWidth="340" prefWidth="340" minWidth="340" alignment="CENTER" style="-fx-border-color: #D3D3D3; -fx-border-radius: 8px; -fx-padding: 15px; -fx-background-color: #FAFAFA; -fx-background-radius: 8px;" HBox.hgrow="ALWAYS" />
+                                </HBox>
+                            </VBox>
+                            <VBox style="-fx-background-color: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" styleClass="box-tabela" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                                <TableView fx:id="tabelaFornecedores" prefHeight="250.0" styleClass="tabela-custom">
+                                    <columns>
+                                        <TableColumn sortable="true"  fx:id="colForId" minWidth="60" prefWidth="80" text="ID" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colForTipo" minWidth="80" prefWidth="100" text="Tipo" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colFornNome" minWidth="150" prefWidth="220" text="Fornecedor" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colFornPedidos" minWidth="80" prefWidth="100" text="Nº Pedidos" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colFornValor" minWidth="120" prefWidth="150" text="Total Gasto" reorderable="false"/>
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                </TableView>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <VBox fx:id="boxVendas" spacing="40.0" VBox.vgrow="ALWAYS" visible="false" managed="false">
+                        <HBox alignment="CENTER" prefHeight="130.0"  spacing="25">
+                            <HBox alignment="CENTER_LEFT"  prefWidth="400" spacing="10" style="-fx-padding:20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+                                <ImageView fitHeight="60" fitWidth="60" preserveRatio="true"><image><Image url="@/com/gerenciador/icons/money.png"/></image></ImageView>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <VBox alignment="CENTER_RIGHT" >
+                                    <Label style="-fx-font-size: 18px; -fx-text-fill: #666;" styleClass="label-h2-relatorio" text="Total Vendido" />
+                                    <Label fx:id="labelValorTotalVendas"  styleClass="numero-destaque" text="R$ 0,00" /> </VBox>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT"  prefWidth="400" spacing="10" style="-fx-padding:20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+                                <ImageView fitHeight="60" fitWidth="60" preserveRatio="true"><image><Image url="@/com/gerenciador/icons/kilo.png"/></image></ImageView>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <VBox alignment="CENTER_RIGHT" >
+                                    <Label style="-fx-font-size: 18px; -fx-text-fill: #666;" styleClass="label-h2-relatorio" text="Kilos Vendidos" />
+                                    <Label fx:id="labelKilosVendidos"   styleClass="numero-destaque" text="0,00 kg"/>
+                                </VBox>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT"  prefWidth="400" spacing="10" style="-fx-padding:20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+                                <ImageView fitHeight="60" fitWidth="60" preserveRatio="true"><image><Image url="@/com/gerenciador/icons/list.png"/></image></ImageView>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <VBox alignment="CENTER_RIGHT" >
+                                    <Label style="-fx-font-size: 16px; -fx-text-fill: #666;" styleClass="label-h2-relatorio" text="Número de Vendas" />
+                                    <Label fx:id="labelNumeroVendas" styleClass="numero-destaque"  text="0" />
+                                </VBox>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT"  prefWidth="400" spacing="10" style="-fx-padding:20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+                                <ImageView fitHeight="60" fitWidth="60" preserveRatio="true"><image><Image url="@/com/gerenciador/icons/client.png"/></image></ImageView>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <VBox alignment="CENTER_RIGHT" >
+                                    <Label style="-fx-font-size: 16px; -fx-text-fill: #666;" styleClass="label-h2-relatorio" text="Total de Clientes" />
+                                    <Label fx:id="labelClientesTotais" styleClass="numero-destaque"  text="0" />
+                                </VBox>
+                            </HBox>
+                        </HBox>
+
+                        <VBox spacing="20" fx:id="boxGraficoEvolucaoVendas" managed="false" style="-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" visible="false">
+                            <Label styleClass="label-h2-relatorio" text="Evolução de Vendas Mensais" />
+                            <BarChart fx:id="graficoBarrasEvolucaoVendas" legendVisible="false" prefHeight="250.0" style="-fx-background-color: transparent;">
+                                <xAxis><CategoryAxis fx:id="eixoXMesesVendas" label="Meses"  /></xAxis>
+                                <yAxis><NumberAxis label="Total Arrecadado (R$)" tickLabelFill="#666666" /></yAxis>
+                            </BarChart>
+                        </VBox>
+
+                        <HBox spacing="25">
+                            <VBox spacing="20" alignment="CENTER_LEFT" maxWidth="600" minWidth="600" maxHeight="200" prefHeight="200" style="-fx-padding: 20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                                <Label styleClass="label-h2-relatorio" text="Distribuição Geral" />
+                                <HBox alignment="CENTER_LEFT" spacing="20" VBox.vgrow="ALWAYS">
+                                    <StackPane prefHeight="100" maxHeight="100" prefWidth="250">
+                                        <PieChart fx:id="graficoPizzaTiposVenda" legendVisible="false" labelsVisible="false" />
+                                        <Circle radius="25" fill="white"/>
+                                    </StackPane>
+                                    <VBox fx:id="legendaTiposVenda" maxHeight="150" minHeight="150" prefHeight="200" maxWidth="340" prefWidth="340" minWidth="340" alignment="CENTER" style="-fx-border-color: #D3D3D3; -fx-border-radius: 8px; -fx-padding: 15px; -fx-background-color: #FAFAFA; -fx-background-radius: 8px;" HBox.hgrow="ALWAYS" />
+                                </HBox>
+                            </VBox>
+                            <VBox style="-fx-background-color: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" styleClass="box-tabela" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                                <TableView fx:id="tabelaTiposVenda" prefHeight="250.0" styleClass="tabela-custom">
+                                    <columns>
+                                        <TableColumn sortable="true"  fx:id="colTipoVendaNome" minWidth="150" prefWidth="250" text="Tipo" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colTipoVendaPedidos" minWidth="80" prefWidth="120" text="Nº Vendas" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colTipoVendaValor" minWidth="120" prefWidth="150" text="Total Arrecadado" reorderable="false"/>
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                </TableView>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="25">
+                            <VBox spacing="20" alignment="CENTER_LEFT" maxWidth="600" minWidth="600" maxHeight="200" prefHeight="200" style="-fx-padding: 20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                                <Label styleClass="label-h2-relatorio" text="Matérias-Primas Mais Vendidas" />
+                                <HBox alignment="CENTER_LEFT" spacing="20" VBox.vgrow="ALWAYS">
+                                    <StackPane prefHeight="100" maxHeight="100" prefWidth="250">
+                                        <PieChart fx:id="graficoPizzaMateriasVenda" legendVisible="false" labelsVisible="false" />
+                                        <Circle radius="25" fill="white"/>
+                                    </StackPane>
+                                    <VBox fx:id="legendaMateriasVenda" maxHeight="150" minHeight="150" prefHeight="200" maxWidth="340" prefWidth="340" minWidth="340" alignment="CENTER" style="-fx-border-color: #D3D3D3; -fx-border-radius: 8px; -fx-padding: 15px; -fx-background-color: #FAFAFA; -fx-background-radius: 8px;" HBox.hgrow="ALWAYS" />
+                                </HBox>
+                            </VBox>
+                            <VBox style="-fx-background-color: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" styleClass="box-tabela" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                                <TableView fx:id="tabelaMateriasVenda" prefHeight="250.0" styleClass="tabela-custom">
+                                    <columns>
+                                        <TableColumn sortable="true"  fx:id="colMatVendaId" minWidth="80" prefWidth="100" text="Serviço" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colMatVendaNome" minWidth="150" prefWidth="250" text="Matéria-Prima" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colMatVendaPedidos" minWidth="80" prefWidth="100" text="Nº Vendas" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colMatVendaValor" minWidth="120" prefWidth="150" text="Total Arrecadado" reorderable="false"/>
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                </TableView>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="25">
+                            <VBox spacing="20" alignment="CENTER_LEFT" maxWidth="600" minWidth="600" maxHeight="200" prefHeight="200" style="-fx-padding: 20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                                <Label styleClass="label-h2-relatorio" text="Produtos Mais Vendidos" />
+                                <HBox alignment="CENTER_LEFT" spacing="20" VBox.vgrow="ALWAYS">
+                                    <StackPane prefHeight="100" maxHeight="100" prefWidth="250">
+                                        <PieChart fx:id="graficoPizzaProdutos" legendVisible="false" labelsVisible="false" />
+                                        <Circle radius="25" fill="white"/>
+                                    </StackPane>
+                                    <VBox fx:id="legendaProdutos" maxHeight="150" minHeight="150" prefHeight="200" maxWidth="340" prefWidth="340" minWidth="340" alignment="CENTER" style="-fx-border-color: #D3D3D3; -fx-border-radius: 8px; -fx-padding: 15px; -fx-background-color: #FAFAFA; -fx-background-radius: 8px;" HBox.hgrow="ALWAYS" />
+                                </HBox>
+                            </VBox>
+                            <VBox style="-fx-background-color: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" styleClass="box-tabela" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                                <TableView fx:id="tabelaProdutosVenda" prefHeight="250.0" styleClass="tabela-custom">
+                                    <columns>
+                                        <TableColumn sortable="true"  fx:id="colProdVendaId" minWidth="80" prefWidth="100" text="Id" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colProdVendaNome" minWidth="150" prefWidth="250" text="Produto" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colProdVendaPedidos" minWidth="80" prefWidth="100" text="Nº Vendas" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colProdVendaValor" minWidth="120" prefWidth="150" text="Total Arrecadado" reorderable="false"/>
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                </TableView>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="25">
+                            <VBox spacing="20" alignment="CENTER_LEFT" maxWidth="600" minWidth="600" maxHeight="200" prefHeight="200" style="-fx-padding: 20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                                <Label styleClass="label-h2-relatorio" text="Serviços Mais Vendidos" />
+                                <HBox alignment="CENTER_LEFT" spacing="20" VBox.vgrow="ALWAYS">
+                                    <StackPane prefHeight="100" maxHeight="100" prefWidth="250">
+                                        <PieChart fx:id="graficoPizzaServicos" legendVisible="false" labelsVisible="false" />
+                                        <Circle radius="25" fill="white"/>
+                                    </StackPane>
+                                    <VBox fx:id="legendaServicos" maxHeight="150" minHeight="150" prefHeight="200" maxWidth="340" prefWidth="340" minWidth="340" alignment="CENTER" style="-fx-border-color: #D3D3D3; -fx-border-radius: 8px; -fx-padding: 15px; -fx-background-color: #FAFAFA; -fx-background-radius: 8px;" HBox.hgrow="ALWAYS" />
+                                </HBox>
+                            </VBox>
+                            <VBox style="-fx-background-color: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" styleClass="box-tabela" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                                <TableView fx:id="tabelaServicos" prefHeight="250.0" styleClass="tabela-custom">
+                                    <columns>
+                                        <TableColumn sortable="true"  fx:id="colServVendaId" minWidth="80" prefWidth="100" text="Id" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colServVendaNome" minWidth="150" prefWidth="250" text="Serviço" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colServVendaPedidos" minWidth="80" prefWidth="100" text="Nº Vendas" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colServVendaValor" minWidth="120" prefWidth="150" text="Total Arrecadado" reorderable="false"/>
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                </TableView>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="25">
+                            <VBox spacing="20" alignment="CENTER_LEFT" maxWidth="600" minWidth="600" maxHeight="200" prefHeight="200" style="-fx-padding: 20px; -fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                                <Label styleClass="label-h2-relatorio" text="Principais Clientes" />
+                                <HBox alignment="CENTER_LEFT" spacing="20" VBox.vgrow="ALWAYS">
+                                    <StackPane prefHeight="100" maxHeight="100" prefWidth="250">
+                                        <PieChart fx:id="graficoPizzaClientes" legendVisible="false" labelsVisible="false" />
+                                        <Circle radius="25" fill="white"/>
+                                    </StackPane>
+                                    <VBox fx:id="legendaClientes" maxHeight="150" minHeight="150" prefHeight="200" maxWidth="340" prefWidth="340" minWidth="340" alignment="CENTER" style="-fx-border-color: #D3D3D3; -fx-border-radius: 8px; -fx-padding: 15px; -fx-background-color: #FAFAFA; -fx-background-radius: 8px;" HBox.hgrow="ALWAYS" />
+                                </HBox>
+                            </VBox>
+                            <VBox style="-fx-background-color: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" styleClass="box-tabela" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                                <TableView fx:id="tabelaClientes" prefHeight="250.0" styleClass="tabela-custom">
+                                    <columns>
+                                        <TableColumn sortable="true"  fx:id="colCliId" minWidth="60" prefWidth="80" text="ID" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colCliTipo" minWidth="80" prefWidth="120" text="Tipo" reorderable="false"/>
+                                        <TableColumn sortable="true"   fx:id="colCliNome" minWidth="150" prefWidth="250" text="Cliente" reorderable="false"/>
+                                        <TableColumn sortable="true"   fx:id="colCliPedidos" minWidth="80" prefWidth="100" text="Nº Vendas" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colCliValor" minWidth="120" prefWidth="150" text="Total Arrecadado" reorderable="false"/>
+                                    </columns>
+                                    <columnResizePolicy><TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                                </TableView>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</AnchorPane>

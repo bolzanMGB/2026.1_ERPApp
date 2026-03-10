@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+<?import java.text.NumberFormat?>
+<?import java.util.Locale?>
+
+<AnchorPane fx:id="pane" styleClass="clientes-pane" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gerenciador.controller.ComprasController">
+    <children>
+        <HBox spacing="40.0" style="-fx-padding: 30px;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+
+                <VBox alignment="TOP_CENTER" maxWidth="440.0" minWidth="485.0" prefWidth="485.0" spacing="10.0" HBox.hgrow="NEVER">
+                    <children>
+                        <Label fx:id="h1Formulario" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="h1-formulario" text="Cadastrar Compra" VBox.vgrow="NEVER">
+                            <padding>
+                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                            </padding>
+                        </Label>
+
+                        <VBox alignment="CENTER" styleClass="box-formulario" VBox.vgrow="ALWAYS">
+                            <children>
+                                <Label fx:id="tipoFormularioLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="50.0" styleClass="tipoPessoa-box" text="Nova Compra" />
+
+                                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
+                                    <content>
+                                        <VBox spacing="15.0">
+                                            <padding>
+                                                <Insets bottom="20.0" left="30.0" right="30.0" top="20.0" />
+                                            </padding>
+                                            <children>
+                                                <VBox spacing="10.0">
+
+                                                    <HBox spacing="10.0">
+                                                        <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                                            <Label styleClass="labels-formulario" text="Data da Compra" />
+                                                            <DatePicker fx:id="dataCompra" maxWidth="1.7976931348623157E308" />
+                                                        </VBox>
+                                                        <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                                            <Label styleClass="labels-formulario" text="Data Limite" />
+                                                            <DatePicker fx:id="dataLimite" maxWidth="1.7976931348623157E308" />
+                                                        </VBox>
+                                                    </HBox>
+
+                                                    <Label styleClass="labels-formulario" text="Fornecedor" />
+                                                    <ComboBox fx:id="boxFornecedor" style="-fx-min-height: 40px; -fx-max-height: 40px;" maxWidth="1.7976931348623157E308" styleClass="combo-filtro" promptText="Selecionar"/>
+
+                                                    <Label styleClass="labels-formulario" text="Matéria-Prima" />
+                                                    <ComboBox fx:id="boxMateriaPrima" maxWidth="1.7976931348623157E308" style="-fx-min-height: 40px; -fx-max-height: 40px;" styleClass="combo-filtro" promptText="Selecionar"/>
+
+                                                    <HBox spacing="10.0">
+                                                        <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                                            <Label styleClass="labels-formulario" text="Quantidade" />
+                                                            <TextField fx:id="txtQuantidade" promptText="Digite a quantidade" styleClass="textFields-formulario" />
+                                                        </VBox>
+
+                                                        <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                                                            <Label styleClass="labels-formulario" text="Valor Unidade ($)" />
+                                                            <TextField fx:id="txtValorUnidade" promptText="R$ 0,00" styleClass="textFields-formulario" />
+                                                        </VBox>
+                                                    </HBox>
+
+                                                    <Label styleClass="labels-formulario" text="Valor Total" />
+                                                    <Label text="0,00" fx:id="txtValorTotal" styleClass="valorTotal" maxWidth="1.7976931348623157E308"/>
+
+
+
+                                                    <Label styleClass="labels-formulario" text="Observação" />
+                                                    <TextField fx:id="txtObservacao" maxWidth="1.7976931348623157E308" promptText="Observações extras se houver" styleClass="textFields-formulario" />
+
+                                                    <Label styleClass="labels-formulario" text="Status do Pagamento" />
+                                                    <VBox spacing="10.0" style="-fx-border-color: #D3D3D3; -fx-border-radius: 8px; -fx-padding: 15px; -fx-background-color: #FAFAFA; -fx-background-radius: 8px;">
+                                                        <CheckBox fx:id="checkEstaPago" text="Efetuado" styleClass="labels-formulario" />
+
+                                                        <VBox spacing="10.0" fx:id="pagamento_fields" managed="false" visible="false">
+                                                            <Label styleClass="labels-formulario" text="Data do Pagamento" />
+                                                            <DatePicker fx:id="dataPagamento" maxWidth="1.7976931348623157E308" />
+
+                                                            <Label styleClass="labels-formulario" text="Comprovante do Pagamento (PDF)" />
+                                                            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                                                                <Button fx:id="btnUpload" text="Selecionar PDF" onAction="#selecionarPdf" style="-fx-padding: 8px 15px; -fx-background-color: #E0E0E0; -fx-background-radius: 5px; -fx-cursor: hand;" />
+                                                                <Label fx:id="labelArquivoPdf" text="Nenhum arquivo selecionado" styleClass="label-arquivo-vazio" onMouseClicked="#visualizarPdf" />
+                                                            </HBox>
+                                                        </VBox>
+                                                    </VBox>
+                                                </VBox>
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </ScrollPane>
+
+                                <StackPane fx:id="containerMensagens" maxWidth="1.7976931348623157E308" minHeight="40.0">
+                                    <Label fx:id="erroLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" style="-fx-text-fill: #E74C3C; -fx-font-weight: bold; -fx-background-color: #FDECEA; -fx-padding: 10; -fx-background-radius: 5;" visible="false" />
+                                    <Label fx:id="sucessoLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" style="-fx-text-fill: #1E7E34; -fx-font-weight: bold; -fx-background-color: #D4EDDA; -fx-padding: 10; -fx-background-radius: 5;" visible="false" />
+                                </StackPane>
+
+                                <HBox alignment="CENTER" spacing="20.0">
+                                    <children>
+                                        <HBox fx:id="boxCadastrar" managed="true" spacing="20" visible="true">
+                                            <Button onAction="#cadastrar" styleClass="cadastrar-btn" text="Cadastrar" />
+                                        </HBox>
+                                        <HBox fx:id="boxAtualizar" managed="false" spacing="20" visible="false">
+                                            <Button onAction="#ativarModoCadastro" styleClass="trocar-btn" text="Cancelar" />
+                                            <Button onAction="#cadastrar" styleClass="cadastrar-btn" text="Atualizar" />
+                                        </HBox>
+                                    </children>
+                                    <padding>
+                                        <Insets bottom="20.0" top="10.0" />
+                                    </padding>
+                                </HBox>
+                            </children>
+                        </VBox>
+                    </children>
+                    <padding>
+                        <Insets left="10.0" right="10.0" />
+                    </padding>
+                </VBox>
+
+                <VBox spacing="15.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" VBox.vgrow="NEVER">
+                            <children>
+                                <HBox alignment="CENTER_LEFT" minHeight="50.0" spacing="10.0" styleClass="barra-pesquisa-container" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" minWidth="300.0" prefWidth="300.0" styleClass="search-box-container" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <SVGPath content="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" styleClass="search-icon" />
+                                                <TextField fx:id="txtPesquisa" onKeyReleased="#atualizarFiltros" maxWidth="1.7976931348623157E308" prefHeight="24.0" promptText="Pesquisar..." styleClass="search-field-transparent" HBox.hgrow="ALWAYS" />
+                                            </children>
+                                            <padding>
+                                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                            </padding>
+                                        </HBox>
+                                        <VBox maxHeight="40.0" prefHeight="20.0" prefWidth="1.0" style="-fx-background-color: #E0E0E0;" />
+                                        <Label fx:id="labelFiltro" style="-fx-font-weight: bold; -fx-text-fill: #666;" text="Filtrar:" />
+                                        <ComboBox fx:id="filtroTabela" prefHeight="24.0" prefWidth="181.0" promptText="Todos" styleClass="combo-filtro" />
+                                    </children>
+                                    <padding>
+                                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                    </padding>
+                                </HBox>
+                            </children>
+                        </HBox>
+
+                        <VBox styleClass="box-tabela" VBox.vgrow="ALWAYS">
+                            <children>
+                                <TableView fx:id="tabelaCompras" styleClass="tabela-custom" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="colId" minWidth="60" prefWidth="80" text="ID" reorderable="false" resizable="false" />
+                                        <TableColumn fx:id="colDataTransacao" minWidth="90" prefWidth="120" text="Data Compra" reorderable="false" resizable="false" />
+                                        <TableColumn fx:id="colNomeFornecedor" minWidth="150" prefWidth="280" text="Fornecedor" reorderable="false" resizable="true" />
+                                        <TableColumn fx:id="colMateriaPrima" minWidth="120" prefWidth="200" text="Matéria-Prima" reorderable="false" resizable="true" />
+                                        <TableColumn fx:id="colQuantidade" minWidth="80" prefWidth="100" text="Qtd." reorderable="false" resizable="false" />
+                                        <TableColumn fx:id="colValorTotal" minWidth="100" prefWidth="140" text="Valor Total" reorderable="false" resizable="false" />
+                                        <TableColumn fx:id="colDataLimite" minWidth="110" prefWidth="130" text="Vencimento" reorderable="false" resizable="false" />
+                                        <TableColumn fx:id="colEstaPago" minWidth="80" prefWidth="110" text="Status" reorderable="false" resizable="false" />
+                                        <TableColumn fx:id="colAcoes" minWidth="100" prefWidth="120" text="Ações" reorderable="false" resizable="false" />
+                                    </columns>
+                                    <columnResizePolicy>
+                                        <TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" />
+                                    </columnResizePolicy>
+                                </TableView>
+                            </children>
+                        </VBox>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </children>
+</AnchorPane>

@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+.root{
+    -fx-font-family: "Inter", "Segoe UI", sans-serif;
+    -fx-font-weight: bold;
+}
+.sidebar{
+    -fx-background-color: #1B1919 ;
+
+}
+
+.sidebar-buttons{
+    -fx-font-size: 18px;
+    -fx-background-color: #1B1919;
+    -fx-text-fill: #FFFFFF;
+    -fx-content-display: LEFT;
+    -fx-graphic-text-gap: 10;
+    -fx-alignment: CENTER_LEFT;
+}
+
+
+.sidebar-buttons:hover {
+    -fx-background-color: #222;
+}
+
+
+.sidebar-buttons.active{
+    -fx-background-color: #00A593;
+}

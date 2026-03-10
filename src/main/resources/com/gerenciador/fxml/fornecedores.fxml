@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<AnchorPane fx:id="pane" styleClass="clientes-pane" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gerenciador.controller.FornecedoresController">
+    <children>
+        <HBox spacing="40.0" style="-fx-padding: 30px;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+
+                <VBox alignment="TOP_CENTER" minWidth="400.0" spacing="10.0" HBox.hgrow="NEVER">
+                    <children>
+
+                        <Label fx:id="h1Formulario" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="h1-formulario" text="Cadastrar Fornecedor" VBox.vgrow="NEVER">
+                            <padding>
+                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                            </padding>
+                        </Label>
+
+                        <VBox alignment="CENTER" styleClass="box-formulario" VBox.vgrow="ALWAYS">
+                            <children>
+                                <Label fx:id="tipoFormularioLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" prefHeight="50.0" styleClass="tipoPessoa-box" text="Pessoa Física" />
+
+                                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
+                                    <content>
+                                        <VBox spacing="15.0">
+                                            <padding>
+                                                <Insets bottom="20.0" left="30.0" right="30.0" top="20.0" />
+                                            </padding>
+                                            <children>
+
+                                                <VBox spacing="10.0">
+                                                    <Label styleClass="labels-formulario" text="Endereço" />
+                                                    <HBox spacing="10.0">
+                                                        <TextField fx:id="txtCidade" promptText="Cidade" styleClass="textFields-formulario" HBox.hgrow="ALWAYS" />
+                                                        <TextField fx:id="txtBairro" promptText="Bairro" styleClass="textFields-formulario" HBox.hgrow="ALWAYS" />
+                                                    </HBox>
+                                                    <HBox spacing="10.0">
+                                                        <TextField fx:id="txtRua" promptText="Rua / Logradouro" styleClass="textFields-formulario" HBox.hgrow="ALWAYS" />
+                                                        <TextField fx:id="txtNumeroCasa" prefWidth="80.0" promptText="Nº" styleClass="textFields-formulario" />
+                                                    </HBox>
+                                                </VBox>
+
+                                                <VBox spacing="10.0">
+                                                    <Label styleClass="labels-formulario" text="Telefone" />
+                                                    <TextField fx:id="txtTelefone" promptText="(XX)XXXXX-XXXX" styleClass="textFields-formulario" />
+                                                </VBox>
+
+                                                <VBox fx:id="pf_fields" spacing="15.0">
+                                                    <children>
+                                                        <VBox spacing="10.0">
+                                                            <Label styleClass="labels-formulario" text="Nome Completo" />
+                                                            <TextField fx:id="txtNomePF" promptText="Digite o nome" styleClass="textFields-formulario" />
+                                                        </VBox>
+                                                        <VBox spacing="10.0">
+                                                            <Label styleClass="labels-formulario" text="CPF" />
+                                                            <TextField fx:id="txtCpf" promptText="000.000.000-00" styleClass="textFields-formulario" />
+                                                        </VBox>
+                                                    </children>
+                                                </VBox>
+
+                                                <VBox fx:id="pj_fields" managed="false" spacing="10.0" visible="false">
+                                                    <children>
+
+                                                        <VBox spacing="15.0">
+
+                                                            <Label styleClass="labels-formulario" text="Nome Fantasia" />
+
+                                                            <TextField fx:id="txtNomeFantasia" promptText="Nome popular" styleClass="textFields-formulario" />
+
+                                                        </VBox>
+
+
+
+                                                        <VBox spacing="10.0">
+
+                                                            <Label styleClass="labels-formulario" text="Nome Responsável" />
+
+                                                            <TextField fx:id="txtNomeResponsavel" promptText="Quem responde pela empresa" styleClass="textFields-formulario" />
+
+                                                        </VBox>
+
+
+
+                                                        <VBox spacing="10.0">
+
+                                                            <Label styleClass="labels-formulario" text="CNPJ" />
+
+                                                            <TextField fx:id="txtCnpj" promptText="00.000.000/0001-00" styleClass="textFields-formulario" />
+
+                                                        </VBox>
+
+
+
+                                                        <VBox spacing="10.0">
+
+                                                            <Label styleClass="labels-formulario" text="Razão Social" />
+
+                                                            <TextField fx:id="txtRazaoSocial" promptText="Nome jurídico" styleClass="textFields-formulario" />
+
+                                                        </VBox>
+
+
+
+                                                        <VBox spacing="10.0">
+
+                                                            <Label styleClass="labels-formulario" text="Inscrição Estadual" />
+
+                                                            <TextField fx:id="txtInscricaoEstadual" promptText="Número da Inscrição Estadual" styleClass="textFields-formulario" />
+
+                                                        </VBox>
+
+
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                </ScrollPane>
+                                <StackPane fx:id="containerMensagens" maxWidth="1.7976931348623157E308" minHeight="40.0">
+                                    <Label fx:id="erroLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" style="-fx-text-fill: #E74C3C; -fx-font-weight: bold; -fx-background-color: #FDECEA; -fx-padding: 10; -fx-background-radius: 5;" visible="false" />
+
+                                    <Label fx:id="sucessoLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" style="-fx-text-fill: #1E7E34; -fx-font-weight: bold; -fx-background-color: #D4EDDA; -fx-padding: 10; -fx-background-radius: 5;" visible="false" />
+                                </StackPane>
+                                <HBox alignment="CENTER" spacing="20.0">
+                                    <children>
+                                        <HBox fx:id="boxCadastrar" managed="true" spacing="20" visible="true">
+                                            <Button onAction="#trocarFormulario" styleClass="trocar-btn" text="Trocar" />
+                                            <Button onAction="#cadastrar" styleClass="cadastrar-btn" text="Cadastrar" />
+                                        </HBox>
+
+                                        <HBox fx:id="boxAtualizar" managed="false" spacing="20" visible="false">
+                                            <Button onAction="#ativarModoCadastro" styleClass="trocar-btn" text="Cancelar" />
+                                            <Button onAction="#cadastrar" styleClass="cadastrar-btn" text="Atualizar" />
+                                        </HBox>
+                                    </children>
+                                    <padding>
+                                        <Insets bottom="20.0" top="10.0" />
+                                    </padding>
+                                </HBox>
+                            </children>
+                        </VBox>
+                    </children>
+                    <padding>
+                        <Insets left="10.0" right="10.0" />
+                    </padding>
+                </VBox>
+
+                <VBox spacing="15.0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" VBox.vgrow="NEVER">
+                            <children>
+                                <HBox alignment="CENTER_LEFT" minHeight="50.0" spacing="10.0" styleClass="barra-pesquisa-container" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" minWidth="300.0" styleClass="search-box-container" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <SVGPath content="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" styleClass="search-icon" />
+                                                <TextField fx:id="txtPesquisa" onAction="#atualizarFiltros" prefHeight="24.0" prefWidth="336.0" promptText="Pesquisar..." styleClass="search-field-transparent" HBox.hgrow="ALWAYS" />
+                                            </children>
+                                            <padding>
+                                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                            </padding>
+                                        </HBox>
+                                        <VBox maxHeight="40.0" prefHeight="20.0" prefWidth="1.0" style="-fx-background-color: #E0E0E0;" />
+                                        <Label fx:id="labelFiltro" style="-fx-font-weight: bold; -fx-text-fill: #666;" text="Filtrar:" />
+                                        <ComboBox fx:id="filtroTabela" prefHeight="24.0" prefWidth="181.0" promptText="Todos" styleClass="combo-filtro" />
+                                    </children>
+                                    <padding>
+                                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                    </padding>
+                                    <HBox.margin>
+                                        <Insets />
+                                    </HBox.margin>
+                                </HBox>
+                            </children>
+                        </HBox>
+
+                        <VBox styleClass="box-tabela" VBox.vgrow="ALWAYS">
+                            <children>
+                                <TableView fx:id="tabelaFornecedores" styleClass="tabela-custom" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn sortable="true" fx:id="colId" minWidth="60" prefWidth="90" text="ID" resizable="false" reorderable="false"/>
+
+                                        <TableColumn sortable="true" fx:id="colTipo" minWidth="80" prefWidth="130" text="Tipo" resizable="true" reorderable="false"/>
+
+                                        <TableColumn sortable="true" fx:id="colNome" minWidth="150" prefWidth="240" text="Nome / Razão Social" resizable="true" reorderable="false"/>
+
+                                        <TableColumn sortable="true" fx:id="colDocumento" minWidth="150" prefWidth="200" text="Documento" resizable="true" reorderable="false"/>
+
+                                        <TableColumn sortable="true" fx:id="colTelefone" minWidth="120" prefWidth="180" text="Telefone" resizable="true" reorderable="false"/>
+
+                                        <TableColumn sortable="true" fx:id="colCidade" minWidth="120" prefWidth="180" text="Cidade" resizable="true" reorderable="false"/>
+
+                                        <TableColumn sortable="true" fx:id="colAcoes" minWidth="100" prefWidth="100" text="Ações" resizable="false" reorderable="false"/>
+                                    </columns>
+
+                                    <columnResizePolicy>
+                                        <TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY"/>
+                                    </columnResizePolicy>
+                                </TableView>
+                            </children>
+                        </VBox>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </children>
+</AnchorPane>
