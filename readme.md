@@ -25,7 +25,7 @@ Cadastro de fornecedores detalhado separando Pessoas Físicas (PF) e Pessoas Jur
 
 ### Estoque
 Controle visual e prático das matérias-primas disponíveis para comercialização.
-![Tela de Estoque]((assets/telaMateria.png))
+![Tela de Estoque](assets/telaMateria.png)
 
 ### Gestão de Serviços
 Controle visual e prático dos serviços e produtos disponíveis para comercialização
@@ -115,3 +115,4 @@ jpackage --name "gerenciador-app" \
 </tbody>
 
 </table>
+
