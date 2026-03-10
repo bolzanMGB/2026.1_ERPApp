@@ -29,7 +29,7 @@ Controle visual e prático das matérias-primas disponíveis para comercializaç
 
 ### Gestão de Serviços
 Controle visual e prático dos serviços e produtos disponíveis para comercialização
-![Tela de Serviços](assets/telaMateria.png)
+![Tela de Serviços](assets/telaServico.png)
 
 ### Gestão de Compras
 Controle estruturado de entrada de mercadorias e matérias-primas.
@@ -113,4 +113,5 @@ jpackage --name "gerenciador-app" \
 </td>
 </tr>
 </tbody>
+
 </table>
