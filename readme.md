@@ -93,8 +93,7 @@ jpackage --name "gerenciador-app" \
 --linux-shortcut \
 --linux-menu-group "Office" \
 --linux-app-category "Office" \
---description "App gerenciador de estoque e vendas" \
---vendor "Othavio Bolzan" \
+--description "App gerenciador de estoque e vendas"
 ```
 ---
 
