@@ -124,8 +124,9 @@
 }
 
 .campo-erro{
--fx-border-color: #E74C3C !important;
- -fx-border-width: 1px;
+    -fx-border-color: #E74C3C;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
 }
 
 
@@ -263,6 +264,7 @@
     -fx-font-size: 14px;
     -fx-padding: 0 15px;
     -fx-text-fill: #555555;;
+    -fx-alignment: CENTER;
 }
 
 
@@ -351,7 +353,9 @@
     -fx-padding: 0 10px;
     -fx-background-color: transparent;
 }
-
+.combo2 {
+    -fx-alignment: CENTER;
+}
 .combo-filtro:empty > .list-cell,
 .combo-filtro > .list-cell:empty {
     -fx-text-fill: #888888;

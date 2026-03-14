@@ -4,100 +4,105 @@ import com.gerenciador.model.cliente.Cliente;
 import com.gerenciador.model.comercializavel.Comercializavel;
 import com.gerenciador.model.comercializavel.MateriaPrima;
 import com.gerenciador.model.comercializavel.Produto;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public class Venda extends Transacao {
+
+    public static class ItemVenda {
+        private Comercializavel item;
+        private BigDecimal quantidade;
+        private BigDecimal valorUnidade;
+        private BigDecimal valorTotal;
+        private ComposicaoVenda composicao;
+
+        public ItemVenda(Comercializavel item, BigDecimal quantidade, BigDecimal valorUnidade, ComposicaoVenda composicao) {
+            if (item == null) throw new IllegalArgumentException("Item inválido");
+            this.item = item;
+            this.quantidade = Transacao.validarDecimal(quantidade, "Quantidade do item");
+            this.valorUnidade = Transacao.validarDecimal(valorUnidade, "Valor Unitário do item");
+            this.valorTotal = this.quantidade.multiply(this.valorUnidade);
+            this.composicao = composicao;
+        }
+
+        public Comercializavel getItem() { return item; }
+        public BigDecimal getQuantidade() { return quantidade; }
+        public BigDecimal getValorUnidade() { return valorUnidade; }
+        public BigDecimal getValorTotal() { return valorTotal; }
+        public ComposicaoVenda getComposicao() { return composicao; }
+    }
+
+    private Integer numeroVenda;
     private Cliente cliente;
-    private Comercializavel item;
-    private ComposicaoVenda composicao;
+    private List<ItemVenda> itens;
     private Integer id;
-    public Cliente getCliente() {
-        return cliente;
-    }
 
-    public Comercializavel getItem() {
-        return item;
-    }
-
-    public ComposicaoVenda getComposicao() {
-        return composicao;
-    }
-    public Venda(LocalDate dataTransacao, Cliente cliente, Produto item,
-                 BigDecimal quantidade, BigDecimal valorUnidade, ComposicaoVenda composicao,
+    public Venda(Integer numeroVenda, LocalDate dataTransacao, Cliente cliente, List<ItemVenda> itens,
                  Boolean estaPago, LocalDate dataLimite, String observacao) {
-        this(dataTransacao, cliente, item, quantidade, valorUnidade, composicao,
-                estaPago, dataLimite, null, null, observacao);
+        this(numeroVenda, dataTransacao, cliente, itens, estaPago, dataLimite, null, null, null, observacao);
     }
 
-    public Venda(LocalDate dataTransacao, Cliente cliente, Produto item,
-                 BigDecimal quantidade, BigDecimal valorUnidade, ComposicaoVenda composicao,
+    public Venda(Integer numeroVenda, LocalDate dataTransacao, Cliente cliente, List<ItemVenda> itens,
                  Boolean estaPago, LocalDate dataLimite, LocalDate dataPagamento,
-                 byte[] notaFiscal, String observacao) {
-        this(dataTransacao, cliente, (Comercializavel) item, quantidade, valorUnidade, composicao,
-                estaPago, dataLimite, dataPagamento, notaFiscal, observacao);
+                 byte[] notaFiscal, byte[] comprovante, String observacao) {
+
+        super(dataTransacao, estaPago, dataLimite, dataPagamento, notaFiscal, comprovante, observacao);
+
+        if (numeroVenda == null) throw new IllegalArgumentException("O Número da Venda é obrigatório.");
+        this.numeroVenda = numeroVenda;
+        this.cliente = validarCliente(cliente);
+        this.itens = itens;
+
+        BigDecimal total = BigDecimal.ZERO;
+        for (ItemVenda iv : itens) {
+            total = total.add(iv.getValorTotal());
+            processarConsumoEstoque(iv);
+        }
+        this.setValorTotal(total);
     }
 
-    public Venda(LocalDate dataTransacao, Cliente cliente, Comercializavel item,
-                 BigDecimal quantidade, BigDecimal valorUnidade,
-                 Boolean estaPago, LocalDate dataLimite, String observacao) {
-        this(dataTransacao, cliente, item, quantidade, valorUnidade, null,
-                estaPago, dataLimite, null, null, observacao);
-    }
+    public void atualizarDados(Integer numeroVenda, LocalDate dtVenda, Cliente cliente, List<ItemVenda> novosItens, boolean pago, LocalDate dtLimite, LocalDate dtPgto, byte[] notaFiscal, byte[] comprovante, String obs) {
+        estornarImpactoEstoque();
 
-    public Venda(LocalDate dataTransacao, Cliente cliente, Comercializavel item,
-                 BigDecimal quantidade, BigDecimal valorUnidade,
-                 Boolean estaPago, LocalDate dataLimite, LocalDate dataPagamento,
-                 byte[] notaFiscal, String observacao) {
-        this(dataTransacao, cliente, item, quantidade, valorUnidade, null,
-                estaPago, dataLimite, dataPagamento, notaFiscal, observacao);
-    }
+        if (numeroVenda == null) throw new IllegalArgumentException("O Número da Venda é obrigatório.");
+        this.numeroVenda = numeroVenda;
 
-    private Venda(LocalDate dataTransacao, Cliente cliente, Comercializavel item,
-                  BigDecimal quantidade, BigDecimal valorUnidade, ComposicaoVenda composicao,
-                  Boolean estaPago, LocalDate dataLimite, LocalDate dataPagamento,
-                  byte[] notaFiscal, String observacao) {
-
-        super(dataTransacao, quantidade, valorUnidade, estaPago, dataLimite,
-                dataPagamento, notaFiscal, observacao);
+        setDataTransacao(dtVenda);
+        setEstaPago(pago);
+        setDataLimite(dtLimite);
+        setDataPagamento(dtPgto);
+        setNotaFiscal(notaFiscal);
+        setComprovante(comprovante);
+        setObservacao(obs);
 
         this.cliente = validarCliente(cliente);
-        this.item = validarItem(item);
-        this.composicao = composicao;
+        this.itens = novosItens;
 
-        processarConsumoEstoque(quantidade, composicao);
+        BigDecimal total = BigDecimal.ZERO;
+        for (ItemVenda iv : this.itens) {
+            total = total.add(iv.getValorTotal());
+            aplicarImpactoEstoque(iv);
+        }
+        this.setValorTotal(total);
     }
 
-    private void processarConsumoEstoque(BigDecimal quantidadeVenda, ComposicaoVenda composicao) {
-        if (item instanceof MateriaPrima mp) {
-
-            mp.baixarEstoqueVenda(quantidadeVenda);
-        }
-        else if (item instanceof Produto produto) {
-            if (composicao == null) {
-                throw new IllegalArgumentException("Venda de produto exige uma composição de matérias-primas.");
-            }
-
-            validarTiposComposicao(produto, composicao);
-
-            composicao.validarEstoqueDisponivel();
-
-            composicao.baixarEstoque();
+    private void processarConsumoEstoque(ItemVenda iv) {
+        if (iv.getItem() instanceof MateriaPrima mp) {
+            mp.baixarEstoqueVenda(iv.getQuantidade());
+        } else if (iv.getItem() instanceof Produto produto) {
+            if (iv.getComposicao() == null) throw new IllegalArgumentException("Venda de produto exige uma composição.");
+            validarTiposComposicao(produto, iv.getComposicao());
+            iv.getComposicao().validarEstoqueDisponivel();
+            iv.getComposicao().baixarEstoque();
         }
     }
 
     private void validarTiposComposicao(Produto p, ComposicaoVenda c) {
         var materiasExigidas = p.getMateriasPrimasNecessarias();
         var materiasInformadas = c.ingredientes().keySet();
-
-        if (materiasExigidas.size() != materiasInformadas.size() ||
-                !materiasInformadas.containsAll(materiasExigidas)) {
-
-            throw new IllegalArgumentException(
-                    "A composição informada não condiz com as matérias-primas do produto: " + p.getNome() +
-                            ". Esperado: " + materiasExigidas.stream().map(MateriaPrima::getNome).toList()
-            );
+        if (materiasExigidas.size() != materiasInformadas.size() || !materiasInformadas.containsAll(materiasExigidas)) {
+            throw new IllegalArgumentException("A composição não condiz com as matérias-primas do produto: " + p.getNome());
         }
     }
 
@@ -105,58 +110,34 @@ public class Venda extends Transacao {
         if (c == null) throw new IllegalArgumentException("Cliente inválido");
         return c;
     }
-    public Integer getId() {
-        return id;
-    }
-    private static Comercializavel validarItem(Comercializavel i) {
-        if (i == null) throw new IllegalArgumentException("Item inválido");
-        return i;
-    }
-
-    public void atualizarDados(LocalDate dtVenda, Cliente cliente, Comercializavel item, BigDecimal qtd, BigDecimal valUnid, ComposicaoVenda composicao, boolean pago, LocalDate dtLimite, LocalDate dtPgto, byte[] pdf, String obs) {
-
-        estornarImpactoEstoque();
-
-        setDataTransacao(dtVenda);
-        setQuantidade(qtd);
-        setValorUnidade(valUnid);
-        setEstaPago(pago);
-        setDataLimite(dtLimite);
-        setDataPagamento(dtPgto);
-        setNotaFiscal(pdf);
-        setObservacao(obs);
-
-        this.cliente = cliente;
-        this.item = item;
-        this.composicao = composicao;
-
-        aplicarImpactoEstoque();
-    }
 
     private void estornarImpactoEstoque() {
-        if (this.item instanceof MateriaPrima mp) {
-            mp.setEstoqueAtual(mp.getEstoqueAtual().add(getQuantidade()));
-            mp.setTotalVendido(mp.getTotalVendido().subtract(getQuantidade()));
-        } else if (this.item instanceof Produto && this.composicao != null) {
-            this.composicao.ingredientes().forEach((mp, qtdNecessaria) -> {
-                mp.setEstoqueAtual(mp.getEstoqueAtual().add(qtdNecessaria));
-                mp.setTotalVendido(mp.getTotalVendido().subtract(qtdNecessaria));
-            });
+        for (ItemVenda iv : this.itens) {
+            if (iv.getItem() instanceof MateriaPrima mp) {
+                mp.setEstoqueAtual(mp.getEstoqueAtual().add(iv.getQuantidade()));
+                mp.setTotalVendido(mp.getTotalVendido().subtract(iv.getQuantidade()));
+            } else if (iv.getItem() instanceof Produto && iv.getComposicao() != null) {
+                iv.getComposicao().ingredientes().forEach((mp, qtdNecessaria) -> {
+                    mp.setEstoqueAtual(mp.getEstoqueAtual().add(qtdNecessaria));
+                    mp.setTotalVendido(mp.getTotalVendido().subtract(qtdNecessaria));
+                });
+            }
         }
     }
 
-    private void aplicarImpactoEstoque() {
-        if (this.item instanceof MateriaPrima mp) {
-            mp.baixarEstoqueVenda(getQuantidade());
-        } else if (this.item instanceof Produto && this.composicao != null) {
-            this.composicao.validarEstoqueDisponivel();
-            this.composicao.baixarEstoque();
+    private void aplicarImpactoEstoque(ItemVenda iv) {
+        if (iv.getItem() instanceof MateriaPrima mp) {
+            mp.baixarEstoqueVenda(iv.getQuantidade());
+        } else if (iv.getItem() instanceof Produto && iv.getComposicao() != null) {
+            iv.getComposicao().validarEstoqueDisponivel();
+            iv.getComposicao().baixarEstoque();
         }
     }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public Integer getNumeroVenda() { return numeroVenda; }
+    public void setNumeroVenda(Integer numeroVenda) { this.numeroVenda = numeroVenda; }
+    public Cliente getCliente() { return cliente; }
+    public List<ItemVenda> getItens() { return itens; }
 }

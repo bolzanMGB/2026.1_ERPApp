@@ -10,7 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.gerenciador.app.DadosRepositorio;
 import com.gerenciador.model.comercializavel.MateriaPrima;
@@ -23,6 +27,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.event.ActionEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -32,6 +38,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -42,37 +49,44 @@ import javafx.util.StringConverter;
 public class ComprasController implements Initializable {
 
     @FXML private AnchorPane pane;
-    @FXML private Label h1Formulario;
-    @FXML private Label tipoFormularioLabel;
-    @FXML private HBox boxCadastrar;
-    @FXML private HBox boxAtualizar;
+    @FXML private Label h1Formulario, tipoFormularioLabel, txtValorTotal, erroLabel, sucessoLabel, labelFiltro;
+    @FXML private HBox boxCadastrar, boxAtualizar;
+    @FXML private ComboBox<BigDecimal> cbNumeroItens;
     @FXML private ComboBox<String> filtroTabela;
     @FXML private ComboBox<Fornecedor> boxFornecedor;
-    @FXML private ComboBox<MateriaPrima> boxMateriaPrima;
-    @FXML private TextField txtQuantidade, txtValorUnidade, txtObservacao;
+    @FXML private TextField txtObservacao, txtPesquisa;
     @FXML private DatePicker dataCompra, dataPagamento, dataLimite;
-    @FXML private Label txtValorTotal;
     @FXML private CheckBox checkEstaPago;
-    @FXML private VBox pagamento_fields;
-    @FXML private Button btnUpload;
-    @FXML private Label labelArquivoPdf;
-    @FXML private TextField txtPesquisa;
-    @FXML private Label erroLabel, sucessoLabel, labelFiltro;
+    @FXML private VBox pagamento_fields, boxItensContainer;
     @FXML private StackPane containerMensagens;
+    @FXML private Button btnUploadPNGpedido;
+    @FXML private Label labelArquivoPng, labelArquivoPdf;
+
     @FXML private TableView<Compra> tabelaCompras;
     @FXML private TableColumn<Compra, Integer> colId;
-    @FXML private TableColumn<Compra, String> colDataTransacao, colDataLimite;
-    @FXML private TableColumn<Compra, String> colNomeFornecedor, colMateriaPrima, colValorTotal, colEstaPago;
-    @FXML private TableColumn<Compra, BigDecimal> colQuantidade;
+    @FXML private TableColumn<Compra, String> colDataTransacao, colDataLimite, colNomeFornecedor, colMateriaPrima, colValorTotal, colEstaPago, colQuantidade;
     @FXML private TableColumn<Compra, Void> colAcoes;
 
     private FilteredList<Compra> listaFiltrada;
     private Compra compraEmEdicao = null;
-    private File arquivoPdfSelecionado = null;
+    private File arquivoNotaSelecionado = null;
+    private File arquivoComprovanteSelecionado = null;
 
     private static final String APP_DIR = System.getProperty("user.home") + File.separator + "GerenciadorApp";
-    private static final String BASE_PDF_DIR = APP_DIR + File.separator + "PDF";
-    private static final String PDF_COMPRAS_DIR = BASE_PDF_DIR + File.separator + "Compras";
+    private static final String PDF_COMPRAS_DIR = APP_DIR + File.separator + "PDF" + File.separator + "Compras";
+
+    // Classe auxiliar para gerenciar as linhas geradas dinamicamente na UI
+    private class CompraRowUI {
+        ComboBox<MateriaPrima> cbMateriaPrima;
+        TextField txtQtd;
+        TextField txtValor;
+        Label lblTotalItem;
+
+        public CompraRowUI(ComboBox<MateriaPrima> cb, TextField q, TextField v, Label l) {
+            this.cbMateriaPrima = cb; this.txtQtd = q; this.txtValor = v; this.lblTotalItem = l;
+        }
+    }
+    private List<CompraRowUI> linhasCompra = new ArrayList<>();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -82,253 +96,128 @@ public class ComprasController implements Initializable {
         configurarComboBoxes();
         configurarFiltro();
         configurarLimitadores();
-        configurarAtalhosTeclado();
         configurarCss();
+        configurarValidacaoVisualBase();
 
-        txtQuantidade.textProperty().addListener((observable, oldValue, newValue) -> configurarValorTotal());
-        txtValorUnidade.textProperty().addListener((observable, oldValue, newValue) -> configurarValorTotal());
-        txtPesquisa.textProperty().addListener((observable, oldValue, newValue) -> atualizarFiltros());
-
-        labelArquivoPdf.setOnMouseClicked(event -> visualizarPdf());
+        txtPesquisa.textProperty().addListener((obs, old, nv) -> atualizarFiltros());
+        gerarCamposItens(1); // Inicia com 1 item padrão
     }
 
-    private void criarPastaDoSistema() {
-        File diretorio = new File(PDF_COMPRAS_DIR);
-        if (!diretorio.exists()) diretorio.mkdirs();
-    }
+    private void gerarCamposItens(int quantidade) {
+        boxItensContainer.getChildren().clear();
+        linhasCompra.clear();
 
-    @FXML
-    public void selecionarPdf() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Selecionar Comprovante PDF");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Arquivos PDF", "*.pdf"));
+        for (int i = 0; i < quantidade; i++) {
+            VBox boxPrincipal = new VBox(5);
+            Label lblTitulo = new Label((i + 1) + "° Matéria-Prima");
+            lblTitulo.getStyleClass().add("labels-formulario");
 
-        File file = fileChooser.showOpenDialog(pane.getScene().getWindow());
-        if (file != null) {
-            arquivoPdfSelecionado = file;
-            labelArquivoPdf.setText(file.getName());
-            labelArquivoPdf.setStyle("-fx-text-fill: #00A593; -fx-cursor: hand; -fx-underline: true;");
+            VBox boxItem = new VBox(10);
+            boxItem.setStyle("-fx-border-color: #D3D3D3; -fx-border-radius: 8px; -fx-padding: 15px; -fx-background-color: #FAFAFA; -fx-background-radius: 8px;");
+
+            VBox boxNome = new VBox(5);
+            Label lblNome = new Label("Nome Matéria-Prima");
+            lblNome.getStyleClass().add("labels-formulario");
+            ComboBox<MateriaPrima> combo = new ComboBox<>();
+            combo.setMaxWidth(Double.MAX_VALUE);
+            combo.setPromptText("Selecionar");
+            combo.getStyleClass().add("combo-filtro");
+            configurarComboMP(combo);
+            boxNome.getChildren().addAll(lblNome, combo);
+
+            HBox hboxQtdValor = new HBox(10);
+            VBox boxQtd = new VBox(5);
+            HBox.setHgrow(boxQtd, Priority.ALWAYS);
+            Label lblQtd = new Label("Quantidade");
+            lblQtd.getStyleClass().add("labels-formulario");
+            TextField txtQtd = new TextField();
+            txtQtd.setPromptText("Qtd");
+            txtQtd.getStyleClass().add("textFields-formulario");
+            boxQtd.getChildren().addAll(lblQtd, txtQtd);
+
+            VBox boxValor = new VBox(5);
+            HBox.setHgrow(boxValor, Priority.ALWAYS);
+            Label lblValor = new Label("Valor Unidade ($)");
+            lblValor.getStyleClass().add("labels-formulario");
+            TextField txtValor = new TextField();
+            txtValor.setPromptText("R$ 0,00");
+            txtValor.getStyleClass().add("textFields-formulario");
+            boxValor.getChildren().addAll(lblValor, txtValor);
+            hboxQtdValor.getChildren().addAll(boxQtd, boxValor);
+
+            VBox boxTotalRow = new VBox(5);
+            boxTotalRow.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(boxTotalRow, Priority.ALWAYS);
+            Label lblTotalTexto = new Label("Subtotal:");
+            lblTotalTexto.getStyleClass().add("labels-formulario");
+            lblTotalTexto.setMaxWidth(Double.MAX_VALUE);
+            Label lblValorTotalItem = new Label("R$ 0,00");
+            lblValorTotalItem.getStyleClass().add("valorTotal");
+            lblValorTotalItem.setMaxWidth(Double.MAX_VALUE);
+            lblValorTotalItem.setAlignment(Pos.CENTER_RIGHT);
+            boxTotalRow.getChildren().addAll(lblTotalTexto, lblValorTotalItem);
+
+            boxItem.getChildren().addAll(boxNome, hboxQtdValor, boxTotalRow);
+            boxPrincipal.getChildren().addAll(lblTitulo, boxItem);
+
+            boxItensContainer.getChildren().add(boxPrincipal);
+
+            CompraRowUI row = new CompraRowUI(combo, txtQtd, txtValor, lblValorTotalItem);
+            linhasCompra.add(row);
+
+            // Listeners para cálculos
+            txtQtd.textProperty().addListener((obs, o, n) -> recalcularTotaisRowEGeral(row));
+            txtValor.textProperty().addListener((obs, o, n) -> recalcularTotaisRowEGeral(row));
+            aplicarMascaraValorUnidade(txtQtd);
+            aplicarMascaraValorUnidade(txtValor);
+
+            combo.valueProperty().addListener((obs, old, nv) -> {
+                if (nv != null) {
+                    txtQtd.setPromptText("Qtd em " + nv.getUnidade());
+                    combo.getStyleClass().remove("campo-erro");
+                }
+            });
+
+            // Listeners para remover a borda de erro dinamicamente
+            txtQtd.textProperty().addListener((obs, old, nv) -> txtQtd.getStyleClass().remove("campo-erro"));
+            txtValor.textProperty().addListener((obs, old, nv) -> txtValor.getStyleClass().remove("campo-erro"));
         }
     }
 
-    @FXML
-    private void visualizarPdf() {
+    private void recalcularTotaisRowEGeral(CompraRowUI row) {
         try {
-            String nomeArquivo = null;
-            if (arquivoPdfSelecionado != null) {
-                abrirArquivo(arquivoPdfSelecionado);
-                return;
-            }
-            if (compraEmEdicao != null) {
-                nomeArquivo = compraEmEdicao.getNomeArquivoPdf();
-            }
-            if (nomeArquivo == null) {
-                mostrarErro("Nenhum PDF disponível.");
-                return;
-            }
+            BigDecimal q = new BigDecimal(row.txtQtd.getText().replace(",", "."));
+            BigDecimal v = new BigDecimal(row.txtValor.getText().replace(",", "."));
+            BigDecimal totalRow = q.multiply(v).setScale(2, java.math.RoundingMode.HALF_UP);
+            row.lblTotalItem.setText("R$ " + totalRow.toString().replace(".", ","));
+        } catch (Exception e) { row.lblTotalItem.setText("R$ 0,00"); }
+        recalcularTotalGeral();
+    }
 
-            File pdf = new File(PDF_COMPRAS_DIR, nomeArquivo);
-            if (!pdf.exists()) {
-                mostrarErro("Arquivo não encontrado.");
-                return;
-            }
-
-            if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().open(pdf);
-            } else {
-                mostrarErro("Sistema não suporta abrir arquivos.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            mostrarErro("Não foi possível abrir o PDF.");
+    private void recalcularTotalGeral() {
+        BigDecimal totalGeral = BigDecimal.ZERO;
+        for (CompraRowUI row : linhasCompra) {
+            try {
+                BigDecimal q = new BigDecimal(row.txtQtd.getText().replace(",", "."));
+                BigDecimal v = new BigDecimal(row.txtValor.getText().replace(",", "."));
+                totalGeral = totalGeral.add(q.multiply(v));
+            } catch (Exception ignored) {}
         }
+        java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00", new java.text.DecimalFormatSymbols(new java.util.Locale("pt", "BR")));
+        txtValorTotal.setText("R$ " + df.format(totalGeral));
     }
 
-    private void abrirArquivo(File file) throws IOException {
-        if (Desktop.isDesktopSupported()) {
-            Desktop.getDesktop().open(file);
-        } else {
-            mostrarErro("Visualização não suportada.");
-        }
-    }
-
-    @FXML
-    public void cadastrar() {
-        try {
-            LocalDate dtCompra = dataCompra.getValue();
-            Fornecedor fornecedor = boxFornecedor.getValue();
-            MateriaPrima materiaPrima = boxMateriaPrima.getValue();
-            String qtdStr = txtQuantidade.getText() != null ? txtQuantidade.getText().replace(",", ".") : "";
-            String valorStr = txtValorUnidade.getText() != null ? txtValorUnidade.getText().replace(",", ".") : "";
-            LocalDate dtLimite = dataLimite.getValue();
-            boolean isPago = checkEstaPago.isSelected();
-            LocalDate dtPagamento = isPago ? dataPagamento.getValue() : null;
-
-            if (dtCompra == null || fornecedor == null || materiaPrima == null || qtdStr.isBlank() || valorStr.isBlank() || dtLimite == null) {
-                mostrarErro("Preencha os campos obrigatórios.");
-                return;
-            }
-            if (isPago && dtPagamento == null) {
-                mostrarErro("Insira a data de pagamento.");
-                return;
-            }
-
-            BigDecimal qtd = new BigDecimal(qtdStr);
-            BigDecimal valorUnitario = new BigDecimal(valorStr);
-
-            byte[] bytesPdf = null;
-            if (isPago) {
-                if (arquivoPdfSelecionado != null) bytesPdf = Files.readAllBytes(arquivoPdfSelecionado.toPath());
-                else if (compraEmEdicao != null) bytesPdf = compraEmEdicao.getNotaFiscal();
-
-                if (bytesPdf == null && (compraEmEdicao == null || compraEmEdicao.getNomeArquivoPdf() == null)) {
-                    mostrarErro("Anexe o comprovante PDF.");
-                    return;
-                }
-            }
-
-            if (compraEmEdicao == null) {
-                Compra novaCompra = new Compra(dtCompra, fornecedor, materiaPrima, qtd, valorUnitario, isPago, dtLimite, dtPagamento, bytesPdf, txtObservacao.getText());
-
-                if (isPago && arquivoPdfSelecionado != null) {
-                    String nomeFinalPdf = "NF_" + System.currentTimeMillis() + ".pdf";
-                    Files.copy(arquivoPdfSelecionado.toPath(), new File(PDF_COMPRAS_DIR, nomeFinalPdf).toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    novaCompra.setNomeArquivoPdf(nomeFinalPdf);
-                }
-
-                DadosRepositorio.adicionarCompra(novaCompra);
-                mostrarSucesso("Compra cadastrada");
-            } else {
-                String nomeArquivo = compraEmEdicao.getNomeArquivoPdf();
-
-                if (isPago && arquivoPdfSelecionado != null) {
-                    if (nomeArquivo == null) nomeArquivo = "NF_" + System.currentTimeMillis() + ".pdf";
-                    Files.copy(arquivoPdfSelecionado.toPath(), new File(PDF_COMPRAS_DIR, nomeArquivo).toPath(), StandardCopyOption.REPLACE_EXISTING);
-                }
-
-                compraEmEdicao.atualizarDados(dtCompra, fornecedor, materiaPrima, qtd, valorUnitario, isPago, dtLimite, dtPagamento, bytesPdf, txtObservacao.getText());
-                compraEmEdicao.setNomeArquivoPdf(nomeArquivo);
-                DadosRepositorio.atualizarCompra(compraEmEdicao);
-                ativarModoCadastro();
-                mostrarSucesso("Atualização realizada");
-            }
-
-            limparInputs();
-            tabelaCompras.refresh();
-
-        } catch (Exception e) {
-            mostrarErro("Erro: " + e.getMessage());
-        }
-    }
-
-    private void editarCompra(Compra compra) {
-        h1Formulario.setText("Editar Compra");
-        tipoFormularioLabel.setText("Atualizando Compra");
-        compraEmEdicao = compra;
-
-        boxCadastrar.setVisible(false); boxCadastrar.setManaged(false);
-        boxAtualizar.setVisible(true); boxAtualizar.setManaged(true);
-
-        boxFornecedor.setDisable(false);
-        boxMateriaPrima.setDisable(false);
-
-        dataCompra.setValue(compra.getDataTransacao());
-        boxFornecedor.setValue(compra.getFornecedor());
-        boxMateriaPrima.setValue(compra.getProduto());
-        txtQuantidade.setText(compra.getQuantidade().toString().replace(".", ","));
-        txtValorUnidade.setText(compra.getValorUnidade().toString().replace(".", ","));
-        dataLimite.setValue(compra.getDataLimite());
-        txtObservacao.setText(compra.getObservacao());
-
-        if (compra.getEstaPago()) {
-            checkEstaPago.setSelected(true);
-            dataPagamento.setValue(compra.getDataPagamento());
-            if (compra.getNomeArquivoPdf() != null) {
-                labelArquivoPdf.setText("Ver: " + compra.getNomeArquivoPdf());
-                labelArquivoPdf.setStyle("-fx-text-fill: #00A593; -fx-cursor: hand; -fx-underline: true;");
-            }
-        } else {
-            checkEstaPago.setSelected(false);
-        }
-    }
-
-    @FXML
-    public void ativarModoCadastro() {
-        h1Formulario.setText("Cadastrar Compra");
-        tipoFormularioLabel.setText("Nova Compra");
-        compraEmEdicao = null;
-        boxCadastrar.setVisible(true); boxCadastrar.setManaged(true);
-        boxAtualizar.setVisible(false); boxAtualizar.setManaged(false);
-        boxFornecedor.setDisable(false);
-        boxMateriaPrima.setDisable(false);
-        limparInputs();
-    }
-
-    private void limparInputs() {
-        boxFornecedor.getSelectionModel().clearSelection();
-        boxMateriaPrima.getSelectionModel().clearSelection();
-        txtQuantidade.clear();
-        txtValorUnidade.clear();
-        txtValorTotal.setText("0,00");
-        txtObservacao.clear();
-        checkEstaPago.setSelected(false);
-        dataCompra.setValue(LocalDate.now());
-        dataLimite.setValue(LocalDate.now().plusMonths(1));
-        dataPagamento.setValue(null);
-        arquivoPdfSelecionado = null;
-        labelArquivoPdf.setText("Nenhum arquivo selecionado");
-        labelArquivoPdf.setStyle("-fx-text-fill: #777; -fx-cursor: default; -fx-underline: false;");
-        Platform.runLater(() -> pane.requestFocus());
-    }
-
-    private void configurarComboBoxes() {
-        boxFornecedor.setItems(DadosRepositorio.getFornecedores());
-        boxFornecedor.setEditable(true);
-
-        boxFornecedor.setConverter(new StringConverter<>() {
-            @Override public String toString(Fornecedor f) { return f == null ? "" : f.getId() + " | " + f.getNomePrincipal(); }
-            @Override public Fornecedor fromString(String string) {
-                return boxFornecedor.getItems().stream().filter(f -> toString(f).equals(string)).findFirst().orElse(null);
-            }
-        });
-
-        boxFornecedor.getEditor().textProperty().addListener((obs, oldText, newText) -> {
-            if (boxFornecedor.getValue() != null && boxFornecedor.getConverter().toString(boxFornecedor.getValue()).equals(newText)) return;
-            if (newText == null || newText.isEmpty()) {
-                boxFornecedor.setItems(DadosRepositorio.getFornecedores());
-            } else {
-                String filter = newText.toLowerCase();
-                ObservableList<Fornecedor> filtrados = DadosRepositorio.getFornecedores().filtered(f ->
-                        String.valueOf(f.getId()).contains(filter) ||
-                                f.getNomePrincipal().toLowerCase().contains(filter)
-                );
-                Platform.runLater(() -> {
-                    boxFornecedor.setItems(filtrados);
-                    if (!filtrados.isEmpty()) { boxFornecedor.hide(); boxFornecedor.setVisibleRowCount(Math.min(filtrados.size(), 10)); boxFornecedor.show(); }
-                    else boxFornecedor.hide();
-                });
-            }
-        });
-
-        boxFornecedor.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) { txtQuantidade.clear(); txtValorUnidade.clear(); txtValorTotal.setText("0,00"); }
-        });
-
+    private void configurarComboMP(ComboBox<MateriaPrima> boxMateriaPrima) {
         boxMateriaPrima.setItems(DadosRepositorio.getMateriasPrimas());
         boxMateriaPrima.setEditable(true);
-
         boxMateriaPrima.setConverter(new StringConverter<>() {
             @Override public String toString(MateriaPrima mp) { return mp == null ? "" : mp.getNome(); }
-            @Override public MateriaPrima fromString(String string) {
-                return boxMateriaPrima.getItems().stream().filter(mp -> mp.getNome().equals(string)).findFirst().orElse(null);
-            }
+            @Override public MateriaPrima fromString(String string) { return boxMateriaPrima.getItems().stream().filter(mp -> mp.getNome().equals(string)).findFirst().orElse(null); }
         });
-
         boxMateriaPrima.getEditor().textProperty().addListener((obs, oldText, newText) -> {
             if (boxMateriaPrima.getValue() != null && boxMateriaPrima.getConverter().toString(boxMateriaPrima.getValue()).equals(newText)) return;
-            if (newText == null || newText.isEmpty()) {
-                boxMateriaPrima.setItems(DadosRepositorio.getMateriasPrimas());
-            } else {
+            if (newText == null || newText.isEmpty()) boxMateriaPrima.setItems(DadosRepositorio.getMateriasPrimas());
+            else {
                 String filter = newText.toLowerCase();
                 ObservableList<MateriaPrima> filtrados = DadosRepositorio.getMateriasPrimas().filtered(mp -> mp.getNome().toLowerCase().contains(filter));
                 Platform.runLater(() -> {
@@ -338,7 +227,6 @@ public class ComprasController implements Initializable {
                 });
             }
         });
-
         boxMateriaPrima.setButtonCell(new ListCell<>() {
             @Override protected void updateItem(MateriaPrima item, boolean empty) {
                 super.updateItem(item, empty);
@@ -346,39 +234,223 @@ public class ComprasController implements Initializable {
                 else { setText(item.getNome()); setStyle("-fx-text-fill: #333333;"); }
             }
         });
+    }
 
-        boxMateriaPrima.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                txtQuantidade.clear(); txtValorUnidade.clear(); txtValorTotal.setText("0,00");
-                txtQuantidade.setPromptText("Quantidade em " + newVal.getUnidade());
+    // --- VALIDAÇÃO VISUAL ---
+
+    private void configurarValidacaoVisualBase() {
+        boxFornecedor.valueProperty().addListener((obs, old, nv) -> boxFornecedor.getStyleClass().remove("campo-erro"));
+        dataCompra.valueProperty().addListener((obs, old, nv) -> dataCompra.getStyleClass().remove("campo-erro"));
+        dataLimite.valueProperty().addListener((obs, old, nv) -> dataLimite.getStyleClass().remove("campo-erro"));
+    }
+
+    private boolean validarCampos() {
+        boolean valido = true;
+        removerTodasBordasErro();
+
+        if (boxFornecedor.getValue() == null) { marcarCampoComErro(boxFornecedor); valido = false; }
+        if (dataCompra.getValue() == null) { marcarCampoComErro(dataCompra); valido = false; }
+        if (dataLimite.getValue() == null) { marcarCampoComErro(dataLimite); valido = false; }
+
+        for (CompraRowUI row : linhasCompra) {
+            if (row.cbMateriaPrima.getValue() == null) { marcarCampoComErro(row.cbMateriaPrima); valido = false; }
+            if (row.txtQtd.getText() == null || row.txtQtd.getText().trim().isEmpty()) { marcarCampoComErro(row.txtQtd); valido = false; }
+            if (row.txtValor.getText() == null || row.txtValor.getText().trim().isEmpty()) { marcarCampoComErro(row.txtValor); valido = false; }
+        }
+
+        if (!valido) {
+            mostrarErro("Preencha todos os campos obrigatórios.");
+        }
+        return valido;
+    }
+
+    private void marcarCampoComErro(Control controle) {
+        if (!controle.getStyleClass().contains("campo-erro")) {
+            controle.getStyleClass().add("campo-erro");
+        }
+    }
+
+    private void removerTodasBordasErro() {
+        boxFornecedor.getStyleClass().remove("campo-erro");
+        dataCompra.getStyleClass().remove("campo-erro");
+        dataLimite.getStyleClass().remove("campo-erro");
+        for (CompraRowUI row : linhasCompra) {
+            row.cbMateriaPrima.getStyleClass().remove("campo-erro");
+            row.txtQtd.getStyleClass().remove("campo-erro");
+            row.txtValor.getStyleClass().remove("campo-erro");
+        }
+    }
+
+    // --- FIM DA VALIDAÇÃO VISUAL ---
+
+    private void criarPastaDoSistema() {
+        File diretorio = new File(PDF_COMPRAS_DIR);
+        if (!diretorio.exists()) diretorio.mkdirs();
+    }
+
+    @FXML public void selecionarPdf(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Selecionar Arquivo");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Arquivos", "*.pdf", "*.png", "*.jpg", "*.jpeg"));
+        File file = fileChooser.showOpenDialog(pane.getScene().getWindow());
+        if (file != null) {
+            if (event.getSource() == btnUploadPNGpedido) {
+                arquivoNotaSelecionado = file; labelArquivoPng.setText(file.getName()); labelArquivoPng.setStyle("-fx-text-fill: #00A593; -fx-cursor: hand; -fx-underline: true;");
             } else {
-                txtQuantidade.setPromptText("Digite a quantidade");
+                arquivoComprovanteSelecionado = file; labelArquivoPdf.setText(file.getName()); labelArquivoPdf.setStyle("-fx-text-fill: #00A593; -fx-cursor: hand; -fx-underline: true;");
             }
+        }
+    }
+
+    @FXML private void visualizarPdf(MouseEvent event) {
+        try {
+            boolean isNotaFiscal = (event.getSource() == labelArquivoPng);
+            File arquivoTemp = isNotaFiscal ? arquivoNotaSelecionado : arquivoComprovanteSelecionado;
+            String nomeSalvo = null;
+            if (arquivoTemp != null) { abrirArquivo(arquivoTemp); return; }
+            if (compraEmEdicao != null) nomeSalvo = isNotaFiscal ? compraEmEdicao.getNomeNotaFiscal() : compraEmEdicao.getNomeComprovante();
+            if (nomeSalvo == null) { mostrarErro("Nenhum arquivo disponível."); return; }
+            File arquivo = new File(PDF_COMPRAS_DIR, nomeSalvo);
+            if (!arquivo.exists()) { mostrarErro("Arquivo não encontrado."); return; }
+            abrirArquivo(arquivo);
+        } catch (Exception e) { mostrarErro("Não foi possível abrir."); }
+    }
+
+    private void abrirArquivo(File file) throws IOException {
+        if (Desktop.isDesktopSupported()) Desktop.getDesktop().open(file);
+    }
+
+    @FXML public void cadastrar() {
+        if (!validarCampos()) return;
+
+        try {
+            LocalDate dtCompra = dataCompra.getValue();
+            Fornecedor fornecedor = boxFornecedor.getValue();
+            LocalDate dtLimite = dataLimite.getValue();
+            boolean isPago = checkEstaPago.isSelected();
+            LocalDate dtPagamento = isPago ? dataPagamento.getValue() : null;
+
+            if (isPago && dtPagamento == null) { mostrarErro("Insira a data de pagamento."); return; }
+
+            List<Compra.ItemCompra> novosItens = new ArrayList<>();
+            for (CompraRowUI row : linhasCompra) {
+                MateriaPrima mp = row.cbMateriaPrima.getValue();
+                String qtdStr = row.txtQtd.getText().replace(",", ".");
+                String valStr = row.txtValor.getText().replace(",", ".");
+                novosItens.add(new Compra.ItemCompra(mp, new BigDecimal(qtdStr), new BigDecimal(valStr)));
+            }
+
+            byte[] bytesNota = null;
+            if (arquivoNotaSelecionado != null) bytesNota = Files.readAllBytes(arquivoNotaSelecionado.toPath());
+            else if (compraEmEdicao != null) bytesNota = compraEmEdicao.getNotaFiscal();
+
+            byte[] bytesComprovante = null;
+            if (isPago) {
+                if (arquivoComprovanteSelecionado != null) bytesComprovante = Files.readAllBytes(arquivoComprovanteSelecionado.toPath());
+                else if (compraEmEdicao != null) bytesComprovante = compraEmEdicao.getComprovante();
+                if (bytesComprovante == null && (compraEmEdicao == null || compraEmEdicao.getNomeComprovante() == null)) { mostrarErro("Anexe o comprovante."); return; }
+            }
+
+            String nomeNota = (compraEmEdicao != null) ? compraEmEdicao.getNomeNotaFiscal() : null;
+            if (arquivoNotaSelecionado != null) {
+                nomeNota = "NF_" + System.currentTimeMillis() + "_" + arquivoNotaSelecionado.getName();
+                Files.copy(arquivoNotaSelecionado.toPath(), new File(PDF_COMPRAS_DIR, nomeNota).toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+            String nomeComprovante = (compraEmEdicao != null) ? compraEmEdicao.getNomeComprovante() : null;
+            if (isPago && arquivoComprovanteSelecionado != null) {
+                nomeComprovante = "COMP_" + System.currentTimeMillis() + "_" + arquivoComprovanteSelecionado.getName();
+                Files.copy(arquivoComprovanteSelecionado.toPath(), new File(PDF_COMPRAS_DIR, nomeComprovante).toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            if (compraEmEdicao == null) {
+                Compra novaCompra = new Compra(dtCompra, fornecedor, novosItens, isPago, dtLimite, dtPagamento, bytesNota, bytesComprovante, txtObservacao.getText());
+                novaCompra.setNomeNotaFiscal(nomeNota); novaCompra.setNomeComprovante(nomeComprovante);
+                DadosRepositorio.adicionarCompra(novaCompra);
+                mostrarSucesso("Compra cadastrada!");
+            } else {
+                compraEmEdicao.atualizarDados(dtCompra, fornecedor, novosItens, isPago, dtLimite, dtPagamento, bytesNota, bytesComprovante, txtObservacao.getText());
+                compraEmEdicao.setNomeNotaFiscal(nomeNota); compraEmEdicao.setNomeComprovante(nomeComprovante);
+                DadosRepositorio.atualizarCompra(compraEmEdicao);
+                ativarModoCadastro();
+                mostrarSucesso("Atualização realizada!");
+            }
+            limparInputs();
+            tabelaCompras.refresh();
+
+            Platform.runLater(() -> pane.requestFocus());
+        } catch (Exception e) { mostrarErro("Erro: " + e.getMessage()); }
+    }
+
+    private void editarCompra(Compra compra) {
+        h1Formulario.setText("Editar Compra"); tipoFormularioLabel.setText("Atualizando Compra");
+        compraEmEdicao = compra;
+        boxCadastrar.setVisible(false); boxCadastrar.setManaged(false);
+        boxAtualizar.setVisible(true); boxAtualizar.setManaged(true);
+
+        dataCompra.setValue(compra.getDataTransacao());
+        boxFornecedor.setValue(compra.getFornecedor());
+        dataLimite.setValue(compra.getDataLimite());
+        txtObservacao.setText(compra.getObservacao());
+
+        cbNumeroItens.setValue(new BigDecimal(compra.getItens().size())); // Gera automaticamente as UI Rows via listener
+
+        for (int i = 0; i < compra.getItens().size(); i++) {
+            Compra.ItemCompra item = compra.getItens().get(i);
+            CompraRowUI row = linhasCompra.get(i);
+            row.cbMateriaPrima.setValue(item.getMateriaPrima());
+            row.txtQtd.setText(item.getQuantidade().toString().replace(".", ","));
+            row.txtValor.setText(item.getValorUnidade().toString().replace(".", ","));
+        }
+
+        if (compra.getNomeNotaFiscal() != null) { labelArquivoPng.setText("Ver: " + compra.getNomeNotaFiscal()); labelArquivoPng.setStyle("-fx-text-fill: #00A593; -fx-cursor: hand; -fx-underline: true;"); }
+        if (compra.getEstaPago()) {
+            checkEstaPago.setSelected(true); dataPagamento.setValue(compra.getDataPagamento());
+            if (compra.getNomeComprovante() != null) { labelArquivoPdf.setText("Ver: " + compra.getNomeComprovante()); labelArquivoPdf.setStyle("-fx-text-fill: #00A593; -fx-cursor: hand; -fx-underline: true;"); }
+        } else checkEstaPago.setSelected(false);
+
+        removerTodasBordasErro();
+    }
+
+    @FXML public void ativarModoCadastro() {
+        h1Formulario.setText("Cadastrar Compra"); tipoFormularioLabel.setText("Nova Compra");
+        compraEmEdicao = null;
+        boxCadastrar.setVisible(true); boxCadastrar.setManaged(true);
+        boxAtualizar.setVisible(false); boxAtualizar.setManaged(false);
+        limparInputs();
+    }
+
+    private void limparInputs() {
+        boxFornecedor.getSelectionModel().clearSelection(); txtValorTotal.setText("R$ 0,00");
+        txtObservacao.clear(); checkEstaPago.setSelected(false);
+        dataCompra.setValue(LocalDate.now()); dataLimite.setValue(LocalDate.now().plusMonths(1)); dataPagamento.setValue(null);
+        arquivoNotaSelecionado = null; arquivoComprovanteSelecionado = null;
+        labelArquivoPng.setText("Nenhum arquivo"); labelArquivoPng.setStyle("-fx-text-fill: #777; -fx-underline: false;");
+        labelArquivoPdf.setText("Nenhum arquivo"); labelArquivoPdf.setStyle("-fx-text-fill: #777; -fx-underline: false;");
+        cbNumeroItens.setValue(new BigDecimal("1"));
+        gerarCamposItens(1);
+        removerTodasBordasErro();
+    }
+
+    private void configurarComboBoxes() {
+        ObservableList<BigDecimal> configNumItens = FXCollections.observableArrayList(
+                new BigDecimal("1"), new BigDecimal("2"), new BigDecimal("3"), new BigDecimal("4"), new BigDecimal("5")
+        );
+        cbNumeroItens.setItems(configNumItens);
+        cbNumeroItens.setValue(new BigDecimal("1"));
+        cbNumeroItens.valueProperty().addListener((obs, old, nv) -> { if (nv != null) gerarCamposItens(nv.intValue()); });
+
+        boxFornecedor.setItems(DadosRepositorio.getFornecedores());
+        boxFornecedor.setEditable(true);
+        boxFornecedor.setConverter(new StringConverter<>() {
+            @Override public String toString(Fornecedor f) { return f == null ? "" : f.getId() + " | " + f.getNomePrincipal(); }
+            @Override public Fornecedor fromString(String s) { return boxFornecedor.getItems().stream().filter(f -> toString(f).equals(s)).findFirst().orElse(null); }
         });
 
         checkEstaPago.selectedProperty().addListener((obs, oldVal, isPago) -> {
-            pagamento_fields.setVisible(isPago);
-            pagamento_fields.setManaged(isPago);
-            if (isPago) {
-                if (compraEmEdicao == null || dataPagamento.getValue() == null) dataPagamento.setValue(LocalDate.now());
-            } else {
-                dataPagamento.setValue(null);
-                arquivoPdfSelecionado = null;
-                labelArquivoPdf.setText("Nenhum arquivo selecionado");
-                labelArquivoPdf.setStyle("-fx-text-fill: #777; -fx-cursor: default; -fx-underline: false;");
-            }
+            pagamento_fields.setVisible(isPago); pagamento_fields.setManaged(isPago);
+            if (isPago) { if (compraEmEdicao == null || dataPagamento.getValue() == null) dataPagamento.setValue(LocalDate.now()); }
+            else { dataPagamento.setValue(null); arquivoComprovanteSelecionado = null; labelArquivoPdf.setText("Nenhum arquivo"); labelArquivoPdf.setStyle("-fx-text-fill: #777;"); }
         });
-    }
-
-    private void configurarValorTotal() {
-        try {
-            BigDecimal q = new BigDecimal(txtQuantidade.getText().replace(",", "."));
-            BigDecimal v = new BigDecimal(txtValorUnidade.getText().replace(",", "."));
-            BigDecimal total = q.multiply(v).setScale(2, java.math.RoundingMode.HALF_UP);
-            java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00");
-            df.setDecimalFormatSymbols(new java.text.DecimalFormatSymbols(new java.util.Locale("pt", "BR")));
-            txtValorTotal.setText(df.format(total));
-        } catch (Exception e) { txtValorTotal.setText("0,00"); }
     }
 
     private void configurarTabela() {
@@ -387,26 +459,47 @@ public class ComprasController implements Initializable {
         colDataTransacao.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDataTransacao().format(dtf)));
         colDataLimite.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDataLimite().format(dtf)));
         colNomeFornecedor.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getFornecedor().getNomePrincipal()));
-        colMateriaPrima.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getProduto().getNome()));
-        colQuantidade.setCellValueFactory(new PropertyValueFactory<>("quantidade"));
+
+        colMateriaPrima.setCellValueFactory(c -> {
+            List<Compra.ItemCompra> itens = c.getValue().getItens();
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < itens.size(); i++) {
+                sb.append(i + 1).append(itens.get(i).getMateriaPrima().getNome());
+
+                if (i < itens.size() - 1) {
+                    sb.append("\n");
+                }
+            }
+
+            return new SimpleStringProperty(sb.toString());
+        });
+
+        colQuantidade.setCellValueFactory(c -> {
+            List<Compra.ItemCompra> itens = c.getValue().getItens();
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < itens.size(); i++) {
+                sb.append(i + 1).append(itens.get(i).getQuantidade());
+
+                if (i < itens.size() - 1) {
+                    sb.append("\n");
+                }
+            }
+
+            return new SimpleStringProperty(sb.toString());
+        });
         colValorTotal.setCellValueFactory(c -> {
-            BigDecimal valor = c.getValue().getValorTotal().setScale(2, java.math.RoundingMode.HALF_UP);
-            java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00");
-            df.setDecimalFormatSymbols(new java.text.DecimalFormatSymbols(new java.util.Locale("pt", "BR")));
-            return new SimpleStringProperty("R$ " + df.format(valor));
+            java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00", new java.text.DecimalFormatSymbols(new java.util.Locale("pt", "BR")));
+            return new SimpleStringProperty("R$ " + df.format(c.getValue().getValorTotal()));
         });
-        colEstaPago.setCellValueFactory(c -> {
-            Boolean pago = c.getValue().getEstaPago();
-            return new SimpleStringProperty(pago != null && pago ? "Realizado" : "Pendente");
-        });
+        colEstaPago.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstaPago() ? "Realizado" : "Pendente"));
         colAcoes.setCellFactory(criarColunaAcoes());
 
         listaFiltrada = new FilteredList<>(DadosRepositorio.getCompras(), p -> true);
-
         SortedList<Compra> sortedData = new SortedList<>(listaFiltrada);
         sortedData.comparatorProperty().bind(tabelaCompras.comparatorProperty());
         tabelaCompras.setItems(sortedData);
-
     }
 
     private Callback<TableColumn<Compra, Void>, TableCell<Compra, Void>> criarColunaAcoes() {
@@ -418,15 +511,11 @@ public class ComprasController implements Initializable {
                 btnDelete.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/com/gerenciador/icons/delete.png"))));
                 ((ImageView)btnEdit.getGraphic()).setFitWidth(15); ((ImageView)btnEdit.getGraphic()).setFitHeight(15);
                 ((ImageView)btnDelete.getGraphic()).setFitWidth(15); ((ImageView)btnDelete.getGraphic()).setFitHeight(15);
-                container.setAlignment(Pos.CENTER);
-                btnEdit.getStyleClass().add("btn-edit"); btnDelete.getStyleClass().add("btn-delete");
+                container.setAlignment(Pos.CENTER); btnEdit.getStyleClass().add("btn-edit"); btnDelete.getStyleClass().add("btn-delete");
                 btnDelete.setOnAction(e -> removerCompra(getTableView().getItems().get(getIndex())));
                 btnEdit.setOnAction(e -> editarCompra(getTableView().getItems().get(getIndex())));
             }
-            @Override protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : container);
-            }
+            @Override protected void updateItem(Void item, boolean empty) { super.updateItem(item, empty); setGraphic(empty ? null : container); }
         };
     }
 
@@ -434,93 +523,42 @@ public class ComprasController implements Initializable {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Remover transação?", ButtonType.YES, ButtonType.NO);
         if (alert.showAndWait().orElse(ButtonType.NO) == ButtonType.YES) {
             try {
-                if (compra.getNomeArquivoPdf() != null) {
-                    File pdf = new File(PDF_COMPRAS_DIR, compra.getNomeArquivoPdf());
-                    if (pdf.exists()) pdf.delete();
-                }
-                DadosRepositorio.removerCompra(compra);
-                mostrarSucesso("Item removido");
-            } catch (Exception e) {
-                mostrarErro("Erro ao remover compra");
-            }
+                if (compra.getNomeNotaFiscal() != null) new File(PDF_COMPRAS_DIR, compra.getNomeNotaFiscal()).delete();
+                if (compra.getNomeComprovante() != null) new File(PDF_COMPRAS_DIR, compra.getNomeComprovante()).delete();
+                DadosRepositorio.removerCompra(compra); mostrarSucesso("Item removido");
+            } catch (Exception e) { mostrarErro("Erro ao remover"); }
         }
     }
 
     private void configurarFiltro() {
-        filtroTabela.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) { labelFiltro.getStyleClass().add("label-verde"); }
-            else { labelFiltro.getStyleClass().remove("label-verde"); }
-        });
         filtroTabela.setItems(FXCollections.observableArrayList("Todos", "Pago", "Não Pago"));
-        filtroTabela.setValue("Todos");
-        filtroTabela.setOnAction(e -> atualizarFiltros());
-        aplicarMascaraValorUnidade(txtValorUnidade);
-        aplicarMascaraValorUnidade(txtQuantidade);
-        aplicarMascaraData(dataPagamento);
-        aplicarMascaraData(dataLimite);
-        aplicarMascaraData(dataCompra);
+        filtroTabela.setValue("Todos"); filtroTabela.setOnAction(e -> atualizarFiltros());
     }
 
-    @FXML
-    public void atualizarFiltros() {
+    @FXML public void atualizarFiltros() {
         String busca = txtPesquisa.getText() == null ? "" : txtPesquisa.getText().toLowerCase();
         String status = filtroTabela.getValue();
         listaFiltrada.setPredicate(c -> {
             boolean matchStatus = status.equals("Todos") || (status.equals("Pago") ? c.getEstaPago() : !c.getEstaPago());
-            boolean matchBusca = busca.isEmpty() || c.getFornecedor().getNomePrincipal().toLowerCase().contains(busca) || c.getProduto().getNome().toLowerCase().contains(busca);
+            boolean matchBusca = busca.isEmpty() || c.getFornecedor().getNomePrincipal().toLowerCase().contains(busca) ||
+                    c.getItens().stream().anyMatch(i -> i.getMateriaPrima().getNome().toLowerCase().contains(busca));
             return matchStatus && matchBusca;
         });
     }
 
-    private void configurarLimitadores() { limitar(txtQuantidade, 10); limitar(txtValorUnidade, 10); limitar(txtObservacao, 60); }
-    private void limitar(TextField f, int l) {
-        f.textProperty().addListener((obs, old, nv) -> { if (nv != null && nv.length() > l) f.setText(old); });
-    }
-
-    private void aplicarMascaraValorUnidade(TextField f) {
-        f.textProperty().addListener((obs, old, nv) -> {
-            if (nv == null || nv.isEmpty()) return;
-            String t = nv.replaceAll("[^0-9,]", "");
-            if (!nv.equals(t)) { f.setText(t); f.positionCaret(t.length()); }
-        });
-    }
-
-    private void aplicarMascaraData(DatePicker dp) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        dp.setConverter(new StringConverter<LocalDate>() {
-            @Override public String toString(LocalDate d) { return d != null ? dtf.format(d) : ""; }
-            @Override public LocalDate fromString(String s) { try { return LocalDate.parse(s, dtf); } catch (Exception e) { return null; } }
-        });
-    }
-
-    private void configurarDatePickers() {
-        dataCompra.setValue(LocalDate.now());
-        dataLimite.setValue(LocalDate.now().plusMonths(1));
-    }
-
+    private void configurarLimitadores() { limitar(txtObservacao, 60); }
+    private void limitar(TextField f, int l) { f.textProperty().addListener((obs, old, nv) -> { if (nv != null && nv.length() > l) f.setText(old); }); }
+    private void aplicarMascaraValorUnidade(TextField f) { f.textProperty().addListener((obs, old, nv) -> { if (nv == null || nv.isEmpty()) return; String t = nv.replaceAll("[^0-9,]", ""); if (!nv.equals(t)) { f.setText(t); f.positionCaret(t.length()); } }); }
+    private void configurarDatePickers() { dataCompra.setValue(LocalDate.now()); dataLimite.setValue(LocalDate.now().plusMonths(1)); }
     private void configurarCss() {
-        URL f = getClass().getResource("/com/gerenciador/css/formularios.css");
-        URL t = getClass().getResource("/com/gerenciador/css/tabelas.css");
-        if (f != null) pane.getStylesheets().add(f.toExternalForm());
-        if (t != null) pane.getStylesheets().add(t.toExternalForm());
+        URL f = getClass().getResource("/com/gerenciador/css/formularios.css"); URL t = getClass().getResource("/com/gerenciador/css/tabelas.css");
+        if (f != null) pane.getStylesheets().add(f.toExternalForm()); if (t != null) pane.getStylesheets().add(t.toExternalForm());
     }
-
-    private void configurarAtalhosTeclado() {
-        pane.setOnKeyPressed(e -> {
-            if (e.getCode() == javafx.scene.input.KeyCode.ENTER) cadastrar();
-            else if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE && compraEmEdicao != null) ativarModoCadastro();
-        });
-    }
-
     private void mostrarErro(String m) { exibirNotificacao(erroLabel, "Erro: " + m); }
     private void mostrarSucesso(String m) { exibirNotificacao(sucessoLabel, m); }
     private void exibirNotificacao(Label l, String t) {
-        erroLabel.setVisible(false); sucessoLabel.setVisible(false);
-        l.setText(t); l.setVisible(true); l.setManaged(true); l.setOpacity(0);
-        FadeTransition fi = new FadeTransition(Duration.millis(300), l); fi.setToValue(1);
-        PauseTransition d = new PauseTransition(Duration.seconds(3));
-        FadeTransition fo = new FadeTransition(Duration.millis(300), l); fo.setToValue(0);
-        fo.setOnFinished(e -> { l.setVisible(false); l.setManaged(false); });
+        erroLabel.setVisible(false); sucessoLabel.setVisible(false); l.setText(t); l.setVisible(true); l.setManaged(true); l.setOpacity(0);
+        FadeTransition fi = new FadeTransition(Duration.millis(300), l); fi.setToValue(1); PauseTransition d = new PauseTransition(Duration.seconds(3)); FadeTransition fo = new FadeTransition(Duration.millis(300), l); fo.setToValue(0); fo.setOnFinished(e -> { l.setVisible(false); l.setManaged(false); });
         new SequentialTransition(fi, d, fo).play();
     }
 }

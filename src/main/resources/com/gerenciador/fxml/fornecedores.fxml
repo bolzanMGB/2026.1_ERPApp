@@ -40,30 +40,13 @@
                                             </padding>
                                             <children>
 
-                                                <VBox spacing="10.0">
-                                                    <Label styleClass="labels-formulario" text="Endereço" />
-                                                    <HBox spacing="10.0">
-                                                        <TextField fx:id="txtCidade" promptText="Cidade" styleClass="textFields-formulario" HBox.hgrow="ALWAYS" />
-                                                        <TextField fx:id="txtBairro" promptText="Bairro" styleClass="textFields-formulario" HBox.hgrow="ALWAYS" />
-                                                    </HBox>
-                                                    <HBox spacing="10.0">
-                                                        <TextField fx:id="txtRua" promptText="Rua / Logradouro" styleClass="textFields-formulario" HBox.hgrow="ALWAYS" />
-                                                        <TextField fx:id="txtNumeroCasa" prefWidth="80.0" promptText="Nº" styleClass="textFields-formulario" />
-                                                    </HBox>
-                                                </VBox>
-
-                                                <VBox spacing="10.0">
-                                                    <Label styleClass="labels-formulario" text="Telefone" />
-                                                    <TextField fx:id="txtTelefone" promptText="(XX)XXXXX-XXXX" styleClass="textFields-formulario" />
-                                                </VBox>
-
                                                 <VBox fx:id="pf_fields" spacing="15.0">
                                                     <children>
-                                                        <VBox spacing="10.0">
+                                                        <VBox spacing="5.0">
                                                             <Label styleClass="labels-formulario" text="Nome Completo" />
                                                             <TextField fx:id="txtNomePF" promptText="Digite o nome" styleClass="textFields-formulario" />
                                                         </VBox>
-                                                        <VBox spacing="10.0">
+                                                        <VBox spacing="5.0">
                                                             <Label styleClass="labels-formulario" text="CPF" />
                                                             <TextField fx:id="txtCpf" promptText="000.000.000-00" styleClass="textFields-formulario" />
                                                         </VBox>
@@ -73,7 +56,7 @@
                                                 <VBox fx:id="pj_fields" managed="false" spacing="10.0" visible="false">
                                                     <children>
 
-                                                        <VBox spacing="15.0">
+                                                        <VBox spacing="5.0">
 
                                                             <Label styleClass="labels-formulario" text="Nome Fantasia" />
 
@@ -83,7 +66,7 @@
 
 
 
-                                                        <VBox spacing="10.0">
+                                                        <VBox spacing="5.0">
 
                                                             <Label styleClass="labels-formulario" text="Nome Responsável" />
 
@@ -93,7 +76,7 @@
 
 
 
-                                                        <VBox spacing="10.0">
+                                                        <VBox spacing="5.0">
 
                                                             <Label styleClass="labels-formulario" text="CNPJ" />
 
@@ -103,7 +86,7 @@
 
 
 
-                                                        <VBox spacing="10.0">
+                                                        <VBox spacing="5.0">
 
                                                             <Label styleClass="labels-formulario" text="Razão Social" />
 
@@ -113,7 +96,7 @@
 
 
 
-                                                        <VBox spacing="10.0">
+                                                        <VBox spacing="5.0">
 
                                                             <Label styleClass="labels-formulario" text="Inscrição Estadual" />
 
@@ -123,6 +106,23 @@
 
 
                                                     </children>
+                                                </VBox>
+
+                                                <VBox spacing="5.0">
+                                                    <Label styleClass="labels-formulario" text="Telefone" />
+                                                    <TextField fx:id="txtTelefone" promptText="(XX)XXXXX-XXXX" styleClass="textFields-formulario" />
+                                                </VBox>
+
+                                                <VBox spacing="5.0">
+                                                    <Label styleClass="labels-formulario" text="Endereço" />
+                                                    <HBox spacing="10.0">
+                                                        <TextField fx:id="txtCidade" promptText="Cidade" styleClass="textFields-formulario" HBox.hgrow="ALWAYS" />
+                                                        <TextField fx:id="txtBairro" promptText="Bairro" styleClass="textFields-formulario" HBox.hgrow="ALWAYS" />
+                                                    </HBox>
+                                                    <HBox spacing="10.0">
+                                                        <TextField fx:id="txtRua" promptText="Rua / Logradouro" styleClass="textFields-formulario" HBox.hgrow="ALWAYS" />
+                                                        <TextField fx:id="txtNumeroCasa" prefWidth="80.0" promptText="Nº" styleClass="textFields-formulario" />
+                                                    </HBox>
                                                 </VBox>
                                             </children>
                                         </VBox>
@@ -190,23 +190,23 @@
                             <children>
                                 <TableView fx:id="tabelaFornecedores" styleClass="tabela-custom" VBox.vgrow="ALWAYS">
                                     <columns>
-                                        <TableColumn sortable="true" fx:id="colId" minWidth="60" prefWidth="90" text="ID" resizable="false" reorderable="false"/>
+                                        <TableColumn fx:id="colId" minWidth="60" prefWidth="90" reorderable="false" resizable="false" sortable="true" text="ID" />
 
-                                        <TableColumn sortable="true" fx:id="colTipo" minWidth="80" prefWidth="130" text="Tipo" resizable="true" reorderable="false"/>
+                                        <TableColumn fx:id="colTipo" minWidth="80" prefWidth="130" reorderable="false" resizable="true" sortable="true" text="Tipo" />
 
-                                        <TableColumn sortable="true" fx:id="colNome" minWidth="150" prefWidth="240" text="Nome / Razão Social" resizable="true" reorderable="false"/>
+                                        <TableColumn fx:id="colNome" minWidth="150" prefWidth="240" reorderable="false" resizable="true" sortable="true" text="Nome / Razão Social" />
 
-                                        <TableColumn sortable="true" fx:id="colDocumento" minWidth="150" prefWidth="200" text="Documento" resizable="true" reorderable="false"/>
+                                        <TableColumn fx:id="colDocumento" minWidth="150" prefWidth="200" reorderable="false" resizable="true" sortable="true" text="Documento" />
 
-                                        <TableColumn sortable="true" fx:id="colTelefone" minWidth="120" prefWidth="180" text="Telefone" resizable="true" reorderable="false"/>
+                                        <TableColumn fx:id="colTelefone" minWidth="120" prefWidth="180" reorderable="false" resizable="true" sortable="true" text="Telefone" />
 
-                                        <TableColumn sortable="true" fx:id="colCidade" minWidth="120" prefWidth="180" text="Cidade" resizable="true" reorderable="false"/>
+                                        <TableColumn fx:id="colCidade" minWidth="120" prefWidth="180" reorderable="false" resizable="true" sortable="true" text="Cidade" />
 
-                                        <TableColumn sortable="true" fx:id="colAcoes" minWidth="100" prefWidth="100" text="Ações" resizable="false" reorderable="false"/>
+                                        <TableColumn fx:id="colAcoes" minWidth="100" prefWidth="100" reorderable="false" resizable="false" sortable="true" text="Ações" />
                                     </columns>
 
                                     <columnResizePolicy>
-                                        <TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY"/>
+                                        <TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" />
                                     </columnResizePolicy>
                                 </TableView>
                             </children>

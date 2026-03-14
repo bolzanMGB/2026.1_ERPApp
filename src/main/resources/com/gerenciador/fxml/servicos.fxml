@@ -47,7 +47,7 @@
                                                         <Insets bottom="20" left="30" right="30" top="20" />
                                                     </padding>
                                                     <children>
-                                                        <VBox spacing="10.0">
+                                                        <VBox spacing="5.0">
                                                             <Label styleClass="labels-formulario" text="Nome do Serviço" />
                                                             <TextField fx:id="txtNomeServico" maxWidth="Infinity" promptText="Digite o nome do serviço" styleClass="textFields-formulario" />
                                                         </VBox>
@@ -84,11 +84,11 @@
                                                         <Insets bottom="20" left="30" right="30" top="20" />
                                                     </padding>
                                                     <children>
-                                                        <VBox spacing="10.0">
+                                                        <VBox spacing="5.0">
                                                             <Label styleClass="labels-formulario" text="Nome do Produto" />
                                                             <TextField fx:id="txtNomeProduto" maxWidth="Infinity" promptText="Digite o nome do produto" styleClass="textFields-formulario" />
                                                         </VBox>
-                                                        <VBox spacing="10.0">
+                                                        <VBox spacing="5.0">
                                                             <Label styleClass="labels-formulario" text="Matérias-Primas" />
                                                             <MenuButton fx:id="menuMateriasPrimas" maxWidth="Infinity" styleClass="textFields-formulario" text="Selecione" />
                                                         </VBox>

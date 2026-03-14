@@ -37,10 +37,12 @@
                                                 <Insets bottom="20.0" left="30.0" right="30.0" top="20.0" />
                                             </padding>
                                             <children>
-                                                <VBox spacing="10.0">
+                                                <VBox spacing="5.0">
                                                     <Label styleClass="labels-formulario" text="Nome" />
                                                     <TextField fx:id="txtNome" maxWidth="1.7976931348623157E308" promptText="Digite o nome da matéria-prima" styleClass="textFields-formulario" />
+                                                </VBox>
 
+                                                <VBox spacing="5.0">
                                                     <Label styleClass="labels-formulario" text="Unidade" />
                                                     <TextField fx:id="txtUnidade" maxWidth="1.7976931348623157E308" promptText="Digite a unidade (Kilos, Gramas, Metros, etc.)" styleClass="textFields-formulario" />
                                                 </VBox>

@@ -14,7 +14,7 @@ import java.util.*;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import static com.gerenciador.controller.RelatoriosController.capitalize;
+
 public class DadosRepositorio {
 
     private static final ObservableList<Cliente> clientes = FXCollections.observableArrayList();
@@ -32,7 +32,6 @@ public class DadosRepositorio {
     private static final CompraDAO compraDAO = new CompraDAO();
     private static final VendaDAO vendaDAO = new VendaDAO();
 
-
     public static void carregarDadosDoBanco() {
         try {
             clientes.setAll(clienteDAO.listarTodos());
@@ -42,7 +41,6 @@ public class DadosRepositorio {
             comercializaveis.addAll(produtoDAO.listarTodos());
             compras.setAll(compraDAO.listarTodos());
             vendas.setAll(vendaDAO.listarTodos());
-
             System.out.println("Dados carregados do SQLite com sucesso!");
         } catch (Exception e) {
             System.err.println("Erro ao carregar dados: " + e.getMessage());
@@ -56,143 +54,89 @@ public class DadosRepositorio {
     public static ObservableList<Compra> getCompras() { return compras; }
     public static ObservableList<Venda> getVendas() { return vendas; }
 
-
     public static void adicionarCliente(Cliente cliente) {
-        try {
-            clienteDAO.salvar(cliente);
-            clientes.add(cliente);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { clienteDAO.salvar(cliente); clientes.add(cliente); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void removerCliente(Cliente cliente) {
         try {
-            List<Venda> vendasDoCliente = vendas.stream()
-                    .filter(v -> v.getCliente().getId().equals(cliente.getId()))
-                    .toList();
-
+            List<Venda> vendasDoCliente = vendas.stream().filter(v -> v.getCliente().getId().equals(cliente.getId())).toList();
             for (Venda v : vendasDoCliente) {
-                apagarArquivoFisico(v.getNomeArquivoPdf(), "NotasFiscais_Vendas");
+                apagarArquivoFisico(v.getNomeComprovante(), "Vendas");
                 vendas.remove(v);
             }
-  clienteDAO.deletar(cliente.getId());
-
+            clienteDAO.deletar(cliente.getId());
             clientes.remove(cliente);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void adicionarMateriaPrima(MateriaPrima mp) {
-        try {
-            materiaPrimaDAO.salvar(mp);
-            materiasPrimas.add(mp);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { materiaPrimaDAO.salvar(mp); materiasPrimas.add(mp); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void removerMateriaPrima(MateriaPrima mp) {
-        try {
-            materiaPrimaDAO.deletar(mp.getId());
-            materiasPrimas.remove(mp);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { materiaPrimaDAO.deletar(mp.getId()); materiasPrimas.remove(mp); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void adicionarFornecedor(Fornecedor f) {
-        try {
-            fornecedorDAO.salvar(f);
-            fornecedores.add(f);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { fornecedorDAO.salvar(f); fornecedores.add(f); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void removerFornecedor(Fornecedor f) {
         try {
-            List<Compra> comprasDoFornecedor = compras.stream()
-                    .filter(c -> c.getFornecedor().getId().equals(f.getId()))
-                    .toList();
-
+            List<Compra> comprasDoFornecedor = compras.stream().filter(c -> c.getFornecedor().getId().equals(f.getId())).toList();
             for (Compra c : comprasDoFornecedor) {
-                apagarArquivoFisico(c.getNomeArquivoPdf(), "NotasFiscais");
+                apagarArquivoFisico(c.getNomeComprovante(), "Compras");
                 compras.remove(c);
             }
-
             fornecedorDAO.deletar(f.getId());
             fornecedores.remove(f);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void adicionarCompra(Compra c) {
-        try {
-            compraDAO.salvar(c);
-            compras.add(c);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { compraDAO.salvar(c); compras.add(c); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void removerCompra(Compra c) {
-        try {
-            compraDAO.deletar(c.getId());
-            compras.remove(c);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { compraDAO.deletar(c.getId()); compras.remove(c); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void adicionarVenda(Venda v) {
-        try {
-            vendaDAO.salvar(v);
-            vendas.add(v);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { vendaDAO.salvar(v); vendas.add(v); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void removerVenda(Venda v) {
-        try {
-            vendaDAO.deletar(v.getId());
-            vendas.remove(v);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { vendaDAO.deletar(v.getId()); vendas.remove(v); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void adicionarProduto(Produto p) {
-        try {
-            produtoDAO.salvar(p);
-            comercializaveis.add(p);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { produtoDAO.salvar(p); comercializaveis.add(p); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void removerProdutos(Produto p) {
-        try {
-            produtoDAO.deletar(p.getId());
-            comercializaveis.remove(p);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { produtoDAO.deletar(p.getId()); comercializaveis.remove(p); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void adicionarServico(Servico v) {
-        try {
-            servicoDAO.salvar(v);
-            comercializaveis.add(v);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { servicoDAO.salvar(v); comercializaveis.add(v); } catch (Exception e) { e.printStackTrace(); }
     }
 
     public static void removerServico(Servico v) {
-        try {
-            servicoDAO.deletar(v.getId());
-            comercializaveis.remove(v);
-        } catch (Exception e) { e.printStackTrace(); }
+        try { servicoDAO.deletar(v.getId()); comercializaveis.remove(v); } catch (Exception e) { e.printStackTrace(); }
     }
-
-
 
     public static ObservableList<Integer> getAnos() {
         ObservableList<Integer> anos = FXCollections.observableArrayList();
-        for (Compra c : compras) {
-            int ano = c.getDataTransacao().getYear();
-            if (!anos.contains(ano)) anos.add(ano);
-        }
-        for (Venda v : vendas) {
-            int ano = v.getDataTransacao().getYear();
-            if (!anos.contains(ano)) anos.add(ano);
-        }
+        for (Compra c : compras) { int ano = c.getDataTransacao().getYear(); if (!anos.contains(ano)) anos.add(ano); }
+        for (Venda v : vendas) { int ano = v.getDataTransacao().getYear(); if (!anos.contains(ano)) anos.add(ano); }
         FXCollections.sort(anos);
         return anos;
+    }
+
+    private static String capitalize(String str) {
+        if (str == null || str.isEmpty()) return str;
+        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
     }
 
     public static ObservableList<Compra> getComprasFiltradas(String periodo, Integer ano, String mesStr) {
@@ -209,48 +153,25 @@ public class DadosRepositorio {
         return filtradas;
     }
 
-    public static void atualizarCliente(Cliente cliente) {
-        try { clienteDAO.atualizar(cliente); } catch (Exception e) { e.printStackTrace(); }
-    }
-    public static void atualizarFornecedor(Fornecedor fornecedor) {
-        try { fornecedorDAO.atualizar(fornecedor); } catch (Exception e) { e.printStackTrace(); }
-    }
-    public static void atualizarMateriaPrima(MateriaPrima mp) {
-        try { materiaPrimaDAO.atualizar(mp); } catch (Exception e) { e.printStackTrace(); }
-    }
+    public static void atualizarCliente(Cliente cliente) { try { clienteDAO.atualizar(cliente); } catch (Exception e) { e.printStackTrace(); } }
+    public static void atualizarFornecedor(Fornecedor fornecedor) { try { fornecedorDAO.atualizar(fornecedor); } catch (Exception e) { e.printStackTrace(); } }
+    public static void atualizarMateriaPrima(MateriaPrima mp) { try { materiaPrimaDAO.atualizar(mp); } catch (Exception e) { e.printStackTrace(); } }
     public static void atualizarComercializavel(Comercializavel item) {
         try {
             if (item instanceof Produto) produtoDAO.atualizar((Produto) item);
             else if (item instanceof Servico) servicoDAO.atualizar((Servico) item);
         } catch (Exception e) { e.printStackTrace(); }
     }
-    public static void atualizarCompra(Compra compra) {
-        try { compraDAO.atualizar(compra); } catch (Exception e) { e.printStackTrace(); }
-    }
-    public static void atualizarVenda(Venda venda) {
-        try { vendaDAO.atualizar(venda); } catch (Exception e) { e.printStackTrace(); }
-    }
-
+    public static void atualizarCompra(Compra compra) { try { compraDAO.atualizar(compra); } catch (Exception e) { e.printStackTrace(); } }
+    public static void atualizarVenda(Venda venda) { try { vendaDAO.atualizar(venda); } catch (Exception e) { e.printStackTrace(); } }
 
     public static ObservableList<String> getMesesComDados(int ano) {
         Set<Integer> mesesNumeros = new TreeSet<>();
-
-        for (Compra c : compras) {
-            if (c.getDataTransacao().getYear() == ano) {
-                mesesNumeros.add(c.getDataTransacao().getMonthValue());
-            }
-        }
-        for (Venda v : vendas) {
-            if (v.getDataTransacao().getYear() == ano) {
-                mesesNumeros.add(v.getDataTransacao().getMonthValue());
-            }
-        }
-
+        for (Compra c : compras) { if (c.getDataTransacao().getYear() == ano) mesesNumeros.add(c.getDataTransacao().getMonthValue()); }
+        for (Venda v : vendas) { if (v.getDataTransacao().getYear() == ano) mesesNumeros.add(v.getDataTransacao().getMonthValue()); }
         ObservableList<String> mesesNomes = FXCollections.observableArrayList();
         for (Integer mes : mesesNumeros) {
-            String nomeMes = LocalDate.of(ano, mes, 1)
-                    .getMonth()
-                    .getDisplayName(TextStyle.FULL, Locale.of("pt", "BR"));
+            String nomeMes = LocalDate.of(ano, mes, 1).getMonth().getDisplayName(TextStyle.FULL, Locale.of("pt", "BR"));
             mesesNomes.add(capitalize(nomeMes));
         }
         return mesesNomes;
@@ -258,46 +179,27 @@ public class DadosRepositorio {
 
     public static ObservableList<Venda> getVendasFiltradas(String periodo, Integer ano, String mesStr) {
         ObservableList<Venda> filtradas = FXCollections.observableArrayList();
-
         for (Venda v : vendas) {
             LocalDate data = v.getDataTransacao();
-
-            if ("Total".equals(periodo)) {
-                filtradas.add(v);
-            }
-            else if ("Anual".equals(periodo) && ano != null) {
-                if (data.getYear() == ano) {
-                    filtradas.add(v);
-                }
-            }
+            if ("Total".equals(periodo)) filtradas.add(v);
+            else if ("Anual".equals(periodo) && ano != null && data.getYear() == ano) filtradas.add(v);
             else if ("Mensal".equals(periodo) && ano != null && mesStr != null) {
                 String mesVenda = capitalize(data.getMonth().getDisplayName(TextStyle.FULL, Locale.of("pt", "BR")));
-                if (data.getYear() == ano && mesVenda.equals(mesStr)) {
-                    filtradas.add(v);
-                }
+                if (data.getYear() == ano && mesVenda.equals(mesStr)) filtradas.add(v);
             }
         }
         return filtradas;
     }
 
-   private static void apagarArquivoFisico(String nomeArquivo, String nomePasta) {
+    private static void apagarArquivoFisico(String nomeArquivo, String nomePasta) {
         if (nomeArquivo != null && !nomeArquivo.isEmpty()) {
             String os = System.getProperty("os.name").toLowerCase();
-            
-
-            String diretorioApp = os.contains("win") 
-                ? System.getenv("APPDATA") + File.separator + "GerenciadorApp" 
-                : System.getProperty("user.home") + File.separator + "GerenciadorApp";
-            
-
+            String diretorioApp = os.contains("win")
+                    ? System.getenv("APPDATA") + File.separator + "GerenciadorApp"
+                    : System.getProperty("user.home") + File.separator + "GerenciadorApp";
             String caminhoArquivo = diretorioApp + File.separator + "PDF" + File.separator + nomePasta + File.separator + nomeArquivo;
-
-            try {
-                Files.deleteIfExists(Paths.get(caminhoArquivo));
-                System.out.println("PDF órfão apagado: " + nomeArquivo);
-            } catch (Exception e) {
-                System.err.println("Erro ao tentar apagar PDF: " + e.getMessage());
-            }
+            try { Files.deleteIfExists(Paths.get(caminhoArquivo)); System.out.println("PDF órfão apagado: " + nomeArquivo); }
+            catch (Exception e) { System.err.println("Erro ao tentar apagar PDF: " + e.getMessage()); }
         }
     }
 }

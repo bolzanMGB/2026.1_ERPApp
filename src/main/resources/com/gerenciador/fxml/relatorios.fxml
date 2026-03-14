@@ -125,6 +125,8 @@
                             <VBox style="-fx-background-color: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" styleClass="box-tabela" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                                 <TableView fx:id="tabelaProdutos" prefHeight="250.0" styleClass="tabela-custom">
                                     <columns>
+                                        <TableColumn sortable="true"  fx:id="colMatProdId" minWidth="80" prefWidth="100" text="Id" reorderable="false"/>
+
                                         <TableColumn sortable="true"  fx:id="colProdNome" minWidth="150" prefWidth="250" text="Matéria-Prima" reorderable="false"/>
                                         <TableColumn sortable="true"  fx:id="colProdPedidos" minWidth="80" prefWidth="100" text="Nº Pedidos" reorderable="false"/>
                                         <TableColumn sortable="true"  fx:id="colProdValor" minWidth="120" prefWidth="150" text="Total Gasto" reorderable="false"/>
@@ -240,7 +242,7 @@
                             <VBox style="-fx-background-color: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);" styleClass="box-tabela" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                                 <TableView fx:id="tabelaMateriasVenda" prefHeight="250.0" styleClass="tabela-custom">
                                     <columns>
-                                        <TableColumn sortable="true"  fx:id="colMatVendaId" minWidth="80" prefWidth="100" text="Serviço" reorderable="false"/>
+                                        <TableColumn sortable="true"  fx:id="colMatVendaId" minWidth="80" prefWidth="100" text="Id" reorderable="false"/>
                                         <TableColumn sortable="true"  fx:id="colMatVendaNome" minWidth="150" prefWidth="250" text="Matéria-Prima" reorderable="false"/>
                                         <TableColumn sortable="true"  fx:id="colMatVendaPedidos" minWidth="80" prefWidth="100" text="Nº Vendas" reorderable="false"/>
                                         <TableColumn sortable="true"  fx:id="colMatVendaValor" minWidth="120" prefWidth="150" text="Total Arrecadado" reorderable="false"/>

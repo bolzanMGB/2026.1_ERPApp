@@ -5,8 +5,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 public class DatabaseSetup {
 
@@ -20,16 +18,16 @@ public class DatabaseSetup {
 
     public static void inicializarBanco() {
         try {
-
             criarEstruturaDeDiretorios();
+
+
 
             try (Connection conn = DriverManager.getConnection(URL);
                  Statement stmt = conn.createStatement()) {
 
-
                 stmt.execute("PRAGMA foreign_keys = ON;");
 
-
+                // Tabelas Base
                 stmt.execute("""
                     CREATE TABLE IF NOT EXISTS clientes (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -92,45 +90,70 @@ public class DatabaseSetup {
                     );
                 """);
 
+                // Tabela de Compras (dados gerais)
                 stmt.execute("""
                     CREATE TABLE IF NOT EXISTS compras (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         id_fornecedor INTEGER,
-                        id_materia_prima INTEGER,
-                        quantidade REAL,
-                        valor_unidade REAL,
                         valor_total REAL,
                         data_compra TEXT,
                         data_limite TEXT,
                         data_pagamento TEXT,
                         pago INTEGER,
                         observacao TEXT,
-                        nome_pdf TEXT,
-                        FOREIGN KEY(id_fornecedor) REFERENCES fornecedores(id) ON DELETE CASCADE,
+                        nome_comprovante TEXT,
+                        nome_nota_fiscal TEXT,
+                        FOREIGN KEY(id_fornecedor) REFERENCES fornecedores(id) ON DELETE CASCADE
+                    );
+                """);
+
+                // Tabela associativa de Itens da Compra
+                stmt.execute("""
+                    CREATE TABLE IF NOT EXISTS compra_itens (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        id_compra INTEGER,
+                        id_materia_prima INTEGER,
+                        quantidade REAL,
+                        valor_unidade REAL,
+                        valor_total REAL,
+                        FOREIGN KEY(id_compra) REFERENCES compras(id) ON DELETE CASCADE,
                         FOREIGN KEY(id_materia_prima) REFERENCES materias_primas(id) ON DELETE CASCADE
                     );
                 """);
 
+                // Tabela de Vendas (agora com numero_venda)
                 stmt.execute("""
                     CREATE TABLE IF NOT EXISTS vendas (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        numero_venda INTEGER NOT NULL,
                         id_cliente INTEGER,
-                        tipo_item TEXT,
-                        id_item INTEGER,
-                        quantidade REAL,
-                        valor_unidade REAL,
                         valor_total REAL,
                         data_venda TEXT,
                         data_limite TEXT,
                         data_pagamento TEXT,
                         pago INTEGER,
                         observacao TEXT,
-                        nome_pdf TEXT,
+                        nome_comprovante TEXT,
+                        nome_nota_fiscal TEXT,
                         FOREIGN KEY(id_cliente) REFERENCES clientes(id) ON DELETE CASCADE
                     );
                 """);
 
-                System.out.println("Banco de dados configurado em: " + DB_PATH);
+                // Tabela associativa de Itens da Venda
+                stmt.execute("""
+                    CREATE TABLE IF NOT EXISTS venda_itens (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        id_venda INTEGER,
+                        tipo_item TEXT,
+                        id_item INTEGER,
+                        quantidade REAL,
+                        valor_unidade REAL,
+                        valor_total REAL,
+                        FOREIGN KEY(id_venda) REFERENCES vendas(id) ON DELETE CASCADE
+                    );
+                """);
+
+                System.out.println("Banco de dados recriado do zero com sucesso em: " + DB_PATH);
 
             }
         } catch (Exception e) {
@@ -140,7 +163,6 @@ public class DatabaseSetup {
     }
 
     private static void criarEstruturaDeDiretorios() {
-
         String[] pastasParaCriar = {
                 RAIZ_APP,
                 RAIZ_APP + File.separator + "PDF",
@@ -158,8 +180,7 @@ public class DatabaseSetup {
         }
     }
 
-  public static Connection getConnection() throws SQLException {
-    return DriverManager.getConnection(URL);
-  }
-
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL);
+    }
 }
