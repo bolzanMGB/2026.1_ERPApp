@@ -7,5 +7,5 @@ public interface Comercializavel {
     String getTipo();
     BigDecimal getTotalVendido();
     Integer getId();
-
+    void setTotalVendido(BigDecimal d);
 }

@@ -4,9 +4,11 @@ import com.gerenciador.model.pessoa.Endereco;
 
 public interface Fornecedor {
     Integer getId();
+    void setId(Integer id);
     String getNomePrincipal();
     String getDocumento();
-    Endereco getEndereco();
     String getTelefone();
-    void setId(Integer id);
+    String getTelefone2();
+    String getObservacao();
+    Endereco getEndereco();
 }

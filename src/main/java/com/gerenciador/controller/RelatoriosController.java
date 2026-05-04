@@ -57,7 +57,7 @@ public class RelatoriosController implements Initializable {
     @FXML private TableColumn<ResumoRanking, String> colProdNome;
     @FXML private TableColumn<ResumoRanking, Integer> colProdPedidos;
     @FXML private TableColumn<ResumoRanking, String> colProdValor;
-    @FXML private Label labelValorTotalVendas, labelNumeroVendas, labelClientesTotais, labelKilosVendidos;
+    @FXML private Label labelValorTotalVendas, labelNumeroVendas, labelClientesTotais, labelKilosVendidos, labelServicos;
     @FXML private VBox boxGraficoEvolucaoVendas;
     @FXML private BarChart<String, Number> graficoBarrasEvolucaoVendas;
     @FXML private CategoryAxis eixoXMesesVendas;
@@ -91,6 +91,8 @@ public class RelatoriosController implements Initializable {
     @FXML private TableColumn<ResumoRanking, String> colCliNome, colCliId, colCliTipo;
     @FXML private TableColumn<ResumoRanking, Integer> colCliPedidos;
     @FXML private TableColumn<ResumoRanking, String> colCliValor;
+
+    @FXML private TableColumn<ResumoRanking, String> colProdKilos, colMatVendasKilos, colProdVendaKilos;
 
     private final String[] CORES_GRAFICO = {"#4285F4", "#EA4335", "#FBBC05", "#34A853", "#8AB4F8", "#F28B82"};
     private List<FilteredList<ResumoRanking>> listasFiltradasAtivas = new ArrayList<>();
@@ -191,7 +193,6 @@ public class RelatoriosController implements Initializable {
         BigDecimal totalGasto = compras.stream().map(Compra::getValorTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
         long numFornecedores = compras.stream().map(c -> c.getFornecedor().getNomePrincipal()).distinct().count();
 
-        // Loop Duplo corrigido usando Compra.ItemCompra
         BigDecimal kilosComprados = BigDecimal.ZERO;
         for (Compra c : compras) {
             if (c.getItens() != null) {
@@ -217,19 +218,18 @@ public class RelatoriosController implements Initializable {
             }
             mapaForn.get(nomeForn).adicionar(c.getValorTotal());
 
-            // Varre os Itens da Compra usando Compra.ItemCompra
             if (c.getItens() != null) {
                 for (Compra.ItemCompra ic : c.getItens()) {
                     String nomeMat = ic.getMateriaPrima().getNome();
 
                     if (!mapaMat.containsKey(nomeMat)) {
                         ResumoRanking rr = new ResumoRanking(nomeMat);
-                        // ADICIONE ESTA LINHA PARA SALVAR O ID DA MATÉRIA-PRIMA:
                         try { rr.setId(String.valueOf(ic.getMateriaPrima().getId())); } catch (Exception e) {}
                         mapaMat.put(nomeMat, rr);
                     }
 
                     mapaMat.get(nomeMat).adicionar(ic.getValorTotal());
+                    mapaMat.get(nomeMat).adicionarKilos(ic.getQuantidade());
                 }
             }
         }
@@ -255,15 +255,33 @@ public class RelatoriosController implements Initializable {
         BigDecimal totalVendido = vendas.stream().map(Venda::getValorTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
         long numClientes = vendas.stream().map(v -> v.getCliente().getNomePrincipal()).distinct().count();
 
-        // Loop Duplo corrigido usando Venda.ItemVenda
+        // [PONTO 1] Correção do Indicador de Kilos Vendidos (Global)
         BigDecimal kilosVendidos = BigDecimal.ZERO;
+        BigDecimal servicosVendidos = BigDecimal.ZERO;
         for (Venda v : vendas) {
             if (v.getItens() != null) {
-                for (Venda.ItemVenda iv : v.getItens()) kilosVendidos = kilosVendidos.add(iv.getQuantidade());
+                for (Venda.ItemVenda iv : v.getItens()) {
+                    if (iv.getItem() instanceof Servico) {
+                        servicosVendidos = servicosVendidos.add(iv.getQuantidade());
+                    } else if (iv.getItem() instanceof MateriaPrima) {
+                        kilosVendidos = kilosVendidos.add(iv.getQuantidade());
+                    } else if (iv.getItem() instanceof Produto) {
+                        // Para produtos, somamos o peso total das MPs da composição
+                        if (iv.getComposicao() != null) {
+                            BigDecimal kilosDoProduto = iv.getComposicao().ingredientes().values()
+                                    .stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+                            kilosVendidos = kilosVendidos.add(kilosDoProduto);
+                        }
+                    }
+                }
             }
         }
 
         labelKilosVendidos.setText(String.format(new Locale("pt", "BR"), "%.2f kg", kilosVendidos.doubleValue()));
+        if (labelServicos != null) {
+            labelServicos.setText(String.valueOf(servicosVendidos.intValue()));
+        }
+
         labelValorTotalVendas.setText(NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(totalVendido));
         labelNumeroVendas.setText(String.valueOf(vendas.size()));
         labelClientesTotais.setText(String.valueOf(numClientes));
@@ -287,34 +305,43 @@ public class RelatoriosController implements Initializable {
             }
             mapaCli.get(nomeCli).adicionar(v.getValorTotal());
 
-            // Varre a lista de itens da venda usando Venda.ItemVenda
             if (v.getItens() != null) {
                 for (Venda.ItemVenda iv : v.getItens()) {
                     String tipoItem = "";
                     String nomeItem = iv.getItem().getNome();
-                    String idItemStr = String.valueOf(iv.getItem().getId()); // <-- PEGANDO O ID AQUI
+                    String idItemStr = String.valueOf(iv.getItem().getId());
 
                     if (iv.getItem() instanceof MateriaPrima) {
                         tipoItem = "Matéria-Prima";
                         if (!mapaMat.containsKey(nomeItem)) {
                             ResumoRanking rr = new ResumoRanking(nomeItem);
-                            rr.setId(idItemStr); // <-- SETANDO O ID MANUALMENTE
+                            rr.setId(idItemStr);
                             mapaMat.put(nomeItem, rr);
                         }
                         mapaMat.get(nomeItem).adicionar(iv.getValorTotal());
+                        mapaMat.get(nomeItem).adicionarKilos(iv.getQuantidade());
                     } else if (iv.getItem() instanceof Produto) {
                         tipoItem = "Produto";
                         if (!mapaProd.containsKey(nomeItem)) {
                             ResumoRanking rr = new ResumoRanking(nomeItem);
-                            rr.setId(idItemStr); // <-- SETANDO O ID MANUALMENTE
+                            rr.setId(idItemStr);
                             mapaProd.put(nomeItem, rr);
                         }
                         mapaProd.get(nomeItem).adicionar(iv.getValorTotal());
+
+                        // [PONTO 2] Correção do Ranking de Produtos (Tabela específica)
+                        BigDecimal kilosMP = BigDecimal.ZERO;
+                        if (iv.getComposicao() != null) {
+                            kilosMP = iv.getComposicao().ingredientes().values()
+                                    .stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+                        }
+                        mapaProd.get(nomeItem).adicionarKilos(kilosMP);
+
                     } else if (iv.getItem() instanceof Servico) {
                         tipoItem = "Serviço";
                         if (!mapaServ.containsKey(nomeItem)) {
                             ResumoRanking rr = new ResumoRanking(nomeItem);
-                            rr.setId(idItemStr); // <-- SETANDO O ID MANUALMENTE
+                            rr.setId(idItemStr);
                             mapaServ.put(nomeItem, rr);
                         }
                         mapaServ.get(nomeItem).adicionar(iv.getValorTotal());
@@ -468,6 +495,10 @@ public class RelatoriosController implements Initializable {
         if(colMatVendaId != null) colMatVendaId.setCellValueFactory(new PropertyValueFactory<>("id")); if(colProdVendaId != null) colProdVendaId.setCellValueFactory(new PropertyValueFactory<>("id"));
         if(colServVendaId != null) colServVendaId.setCellValueFactory(new PropertyValueFactory<>("id"));
         if(colMatProdId != null) colMatProdId.setCellValueFactory(new PropertyValueFactory<>("id"));
+
+        if(colProdKilos != null) colProdKilos.setCellValueFactory(new PropertyValueFactory<>("kilosFormatado"));
+        if(colMatVendasKilos != null) colMatVendasKilos.setCellValueFactory(new PropertyValueFactory<>("kilosFormatado"));
+        if(colProdVendaKilos != null) colProdVendaKilos.setCellValueFactory(new PropertyValueFactory<>("kilosFormatado"));
     }
 
     private void configurarColunasTabela(TableColumn<ResumoRanking, String> colNome, TableColumn<ResumoRanking, Integer> colPedidos, TableColumn<ResumoRanking, String> colValor) {
@@ -490,11 +521,17 @@ public class RelatoriosController implements Initializable {
 
     public static class ResumoRanking {
         private String nome; private String id = "-"; private String tipo = "-"; private int pedidos = 0; private BigDecimal valorTotal = BigDecimal.ZERO;
+        private BigDecimal kilosTotal = BigDecimal.ZERO;
+
         public ResumoRanking(String nome) { this.nome = nome; }
+
         public void adicionar(BigDecimal valor) { this.pedidos++; this.valorTotal = this.valorTotal.add(valor); }
+        public void adicionarKilos(BigDecimal kilos) { this.kilosTotal = this.kilosTotal.add(kilos); }
+
         public String getNome() { return nome; } public String getId() { return id; } public void setId(String id) { this.id = id; }
         public String getTipo() { return tipo; } public void setTipo(String tipo) { this.tipo = tipo; }
         public int getPedidos() { return pedidos; } public BigDecimal getValorDecimal() { return valorTotal; }
         public String getValorFormatado() { return String.format("R$ %,.2f", valorTotal); }
+        public String getKilosFormatado() { return String.format(new Locale("pt", "BR"), "%.2f kg", kilosTotal.doubleValue()); }
     }
 }

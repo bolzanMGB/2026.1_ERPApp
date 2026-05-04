@@ -348,7 +348,6 @@ public class ComprasController implements Initializable {
             if (isPago) {
                 if (arquivoComprovanteSelecionado != null) bytesComprovante = Files.readAllBytes(arquivoComprovanteSelecionado.toPath());
                 else if (compraEmEdicao != null) bytesComprovante = compraEmEdicao.getComprovante();
-                if (bytesComprovante == null && (compraEmEdicao == null || compraEmEdicao.getNomeComprovante() == null)) { mostrarErro("Anexe o comprovante."); return; }
             }
 
             String nomeNota = (compraEmEdicao != null) ? compraEmEdicao.getNomeNotaFiscal() : null;
@@ -465,7 +464,9 @@ public class ComprasController implements Initializable {
             StringBuilder sb = new StringBuilder();
 
             for (int i = 0; i < itens.size(); i++) {
-                sb.append(i + 1).append(itens.get(i).getMateriaPrima().getNome());
+                sb.append(i + 1)
+                        .append(") ")
+                        .append(itens.get(i).getMateriaPrima().getNome());
 
                 if (i < itens.size() - 1) {
                     sb.append("\n");
@@ -480,7 +481,7 @@ public class ComprasController implements Initializable {
             StringBuilder sb = new StringBuilder();
 
             for (int i = 0; i < itens.size(); i++) {
-                sb.append(i + 1).append(itens.get(i).getQuantidade());
+                sb.append(i + 1).append(") ").append(itens.get(i).getQuantidade());
 
                 if (i < itens.size() - 1) {
                     sb.append("\n");

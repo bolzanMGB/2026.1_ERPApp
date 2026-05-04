@@ -15,7 +15,7 @@ import com.gerenciador.app.DatabaseSetup;
 public class VendaDAO {
 
     public void salvar(Venda venda) throws SQLException {
-        String sql = "INSERT INTO vendas (numero_venda, id_cliente, valor_total, data_venda, data_limite, data_pagamento, pago, observacao, nome_comprovante, nome_nota_fiscal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO vendas (numero_venda, id_cliente, valor_total, data_venda, data_limite, data_pagamento, pago, observacao, nome_comprovante, nome_nota_fiscal, nome_arquivo_venda) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseSetup.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -32,6 +32,7 @@ public class VendaDAO {
             stmt.setString(8, venda.getObservacao());
             stmt.setString(9, venda.getNomeComprovante());
             stmt.setString(10, venda.getNomeNotaFiscal());
+            stmt.setString(11, venda.getNomeArquivoVenda());
 
             stmt.executeUpdate();
 
@@ -61,7 +62,7 @@ public class VendaDAO {
     }
 
     public void atualizar(Venda venda) throws SQLException {
-        String sql = "UPDATE vendas SET numero_venda=?, id_cliente=?, valor_total=?, data_venda=?, data_limite=?, data_pagamento=?, pago=?, observacao=?, nome_comprovante=?, nome_nota_fiscal=? WHERE id=?";
+        String sql = "UPDATE vendas SET numero_venda=?, id_cliente=?, valor_total=?, data_venda=?, data_limite=?, data_pagamento=?, pago=?, observacao=?, nome_comprovante=?, nome_nota_fiscal=?, nome_arquivo_venda=? WHERE id=?";
         try (Connection conn = DatabaseSetup.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, venda.getNumeroVenda());
             stmt.setInt(2, venda.getCliente().getId());
@@ -76,7 +77,8 @@ public class VendaDAO {
             stmt.setString(8, venda.getObservacao());
             stmt.setString(9, venda.getNomeComprovante());
             stmt.setString(10, venda.getNomeNotaFiscal());
-            stmt.setInt(11, venda.getId());
+            stmt.setString(11, venda.getNomeArquivoVenda());
+            stmt.setInt(12, venda.getId());
 
             stmt.executeUpdate();
 
@@ -118,12 +120,13 @@ public class VendaDAO {
 
                 List<Venda.ItemVenda> itens = buscarItensDaVenda(idVenda, conn, produtoDAO, servicoDAO, materiaPrimaDAO);
 
-                Venda venda = new Venda(numVenda, dataVenda, cliente, itens, rs.getInt("pago") == 1, dataLimite, dataPagamento, null, null, rs.getString("observacao"));
+                Venda venda = new Venda(numVenda, dataVenda, cliente, itens, rs.getInt("pago") == 1, dataLimite, dataPagamento, null, null, null, rs.getString("observacao"));
 
                 venda.setId(idVenda);
                 venda.setValorTotal(BigDecimal.valueOf(rs.getDouble("valor_total")));
                 venda.setNomeComprovante(rs.getString("nome_comprovante"));
                 venda.setNomeNotaFiscal(rs.getString("nome_nota_fiscal"));
+                venda.setNomeArquivoVenda(rs.getString("nome_arquivo_venda"));
                 lista.add(venda);
             }
         }

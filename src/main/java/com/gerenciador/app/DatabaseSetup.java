@@ -20,22 +20,22 @@ public class DatabaseSetup {
         try {
             criarEstruturaDeDiretorios();
 
-
+            File dbFile = new File(DB_PATH);
 
             try (Connection conn = DriverManager.getConnection(URL);
                  Statement stmt = conn.createStatement()) {
-
                 stmt.execute("PRAGMA foreign_keys = ON;");
 
-                // Tabelas Base
                 stmt.execute("""
                     CREATE TABLE IF NOT EXISTS clientes (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         tipo_pessoa TEXT NOT NULL,
                         nome TEXT NOT NULL,
                         telefone TEXT,
+                        telefone2 TEXT,
+                        observacao TEXT,
                         cidade TEXT, bairro TEXT, rua TEXT, numero_casa TEXT,
-                        documento TEXT UNIQUE,
+                        documento TEXT,
                         inscricao_estadual TEXT, razao_social TEXT, nome_responsavel TEXT
                     );
                 """);
@@ -46,8 +46,10 @@ public class DatabaseSetup {
                         tipo_pessoa TEXT NOT NULL,
                         nome TEXT NOT NULL,
                         telefone TEXT,
+                        telefone2 TEXT,
+                        observacao TEXT,
                         cidade TEXT, bairro TEXT, rua TEXT, numero_casa TEXT,
-                        documento TEXT UNIQUE,
+                        documento TEXT,
                         inscricao_estadual TEXT, razao_social TEXT, nome_responsavel TEXT
                     );
                 """);
@@ -90,7 +92,6 @@ public class DatabaseSetup {
                     );
                 """);
 
-                // Tabela de Compras (dados gerais)
                 stmt.execute("""
                     CREATE TABLE IF NOT EXISTS compras (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -107,7 +108,6 @@ public class DatabaseSetup {
                     );
                 """);
 
-                // Tabela associativa de Itens da Compra
                 stmt.execute("""
                     CREATE TABLE IF NOT EXISTS compra_itens (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -121,7 +121,6 @@ public class DatabaseSetup {
                     );
                 """);
 
-                // Tabela de Vendas (agora com numero_venda)
                 stmt.execute("""
                     CREATE TABLE IF NOT EXISTS vendas (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -135,11 +134,11 @@ public class DatabaseSetup {
                         observacao TEXT,
                         nome_comprovante TEXT,
                         nome_nota_fiscal TEXT,
+                        nome_arquivo_venda TEXT,
                         FOREIGN KEY(id_cliente) REFERENCES clientes(id) ON DELETE CASCADE
                     );
                 """);
 
-                // Tabela associativa de Itens da Venda
                 stmt.execute("""
                     CREATE TABLE IF NOT EXISTS venda_itens (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -153,7 +152,7 @@ public class DatabaseSetup {
                     );
                 """);
 
-                System.out.println("Banco de dados recriado do zero com sucesso em: " + DB_PATH);
+                System.out.println("Banco de dados configurado com sucesso em: " + DB_PATH);
 
             }
         } catch (Exception e) {
@@ -172,10 +171,8 @@ public class DatabaseSetup {
 
         for (String caminho : pastasParaCriar) {
             File pasta = new File(caminho);
-            if (!pasta.exists()) {
-                if (pasta.mkdirs()) {
-                    System.out.println("Pasta criada: " + caminho);
-                }
+            if (!pasta.exists() && pasta.mkdirs()) {
+                System.out.println("Pasta criada: " + caminho);
             }
         }
     }

@@ -107,8 +107,13 @@
                                     </VBox>
 
                                     <VBox spacing="5.0">
-                                       <Label styleClass="labels-formulario" text="Telefone" />
+                                       <Label styleClass="labels-formulario" text="Telefone 1" />
                                        <TextField fx:id="txtTelefone" promptText="(XX)XXXXX-XXXX" styleClass="textFields-formulario" />
+                                    </VBox>
+
+                                    <VBox spacing="5.0">
+                                       <Label styleClass="labels-formulario" text="Telefone 2" />
+                                       <TextField fx:id="txtTelefone2" promptText="(XX)XXXX-XXXX" styleClass="textFields-formulario" />
                                     </VBox>
 
                                     <VBox spacing="5.0">
@@ -121,6 +126,11 @@
                                           <TextField fx:id="txtRua" promptText="Rua / Logradouro" styleClass="textFields-formulario" HBox.hgrow="ALWAYS" />
                                           <TextField fx:id="txtNumeroCasa" prefWidth="80.0" promptText="Nº" styleClass="textFields-formulario" />
                                        </HBox>
+                                    </VBox>
+
+                                    <VBox spacing="5.0">
+                                       <Label styleClass="labels-formulario" text="Observação" />
+                                       <TextField fx:id="txtObservacao" maxWidth="1.7976931348623157E308" promptText="Observações extras se houver" styleClass="textFields-formulario" />
                                     </VBox>
                                  </children>
                               </VBox>
@@ -194,10 +204,12 @@
 
                               <TableColumn fx:id="colNome" minWidth="150" prefWidth="250" reorderable="false" sortable="true" text="Nome" />
                               <TableColumn fx:id="colDocumento" minWidth="150" prefWidth="180" reorderable="false" sortable="true" text="Documento" />
-                              <TableColumn fx:id="colTelefone" minWidth="120" prefWidth="150" reorderable="false" sortable="true" text="Telefone" />
+                              <TableColumn fx:id="colTelefone" minWidth="120" prefWidth="150" reorderable="false" sortable="true" text="Telefone 1" />
+                              <TableColumn fx:id="colTelefone2" minWidth="120" prefWidth="150" reorderable="false" sortable="true" text="Telefone 2" />
                               <TableColumn fx:id="colCidade" minWidth="120" prefWidth="150" reorderable="false" sortable="true" text="Cidade" />
 
                               <TableColumn fx:id="colAcoes" minWidth="100" prefWidth="100" reorderable="false" resizable="false" sortable="true" text="Ações" />
+
                            </columns>
 
                            <columnResizePolicy>

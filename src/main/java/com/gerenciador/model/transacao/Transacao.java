@@ -34,7 +34,7 @@ public abstract class Transacao {
 
         if (this.estaPago) {
             this.dataPagamento = validarData(dataPagamento, "Data de Pagamento");
-            this.comprovante = validarArquivo(comprovante, "Arquivo do Comprovante");
+            this.comprovante = comprovante;
         } else {
             this.dataPagamento = null;
             this.comprovante = null;
@@ -56,10 +56,6 @@ public abstract class Transacao {
         return valor;
     }
 
-    private static byte[] validarArquivo(byte[] arquivo, String nomeAtributo){
-        if (arquivo == null || arquivo.length == 0){ throw new IllegalArgumentException(nomeAtributo + " é obrigatório para itens pagos."); }
-        return arquivo;
-    }
 
     public LocalDate getDataTransacao() { return dataTransacao; }
     public BigDecimal getValorTotal() { return valorTotal; }

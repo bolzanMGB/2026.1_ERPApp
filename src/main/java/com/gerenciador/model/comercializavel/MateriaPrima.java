@@ -107,7 +107,23 @@ public class MateriaPrima implements Comercializavel {
     public void processarCompra (MateriaPrima produto, BigDecimal quantidade){
         produto.setEstoqueAtual(produto.getEstoqueAtual().add(quantidade));
         produto.setTotalComprado(produto.getTotalComprado().add(quantidade));
-
     }
 
+    // ADICIONADO: Métodos para garantir a igualdade correta entre instâncias baseadas no ID ou Nome.
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MateriaPrima that = (MateriaPrima) o;
+        if (id != null && that.id != null) {
+            return id.equals(that.id);
+        }
+        return nome != null && nome.equals(that.nome);
+    }
+
+    @Override
+    public int hashCode() {
+        if (id != null) return id.hashCode();
+        return nome != null ? nome.hashCode() : super.hashCode();
+    }
 }

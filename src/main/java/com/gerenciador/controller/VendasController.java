@@ -60,7 +60,8 @@ public class VendasController implements Initializable {
     @FXML private CheckBox checkEstaPago;
 
     @FXML private Button btnUploadPNGvenda;
-    @FXML private Label labelArquivoPNG, labelArquivoPdf, erroLabel, sucessoLabel;
+    @FXML private Button btnUploadArquivoVenda;
+    @FXML private Label labelArquivoPNG, labelArquivoPdf, labelArquivoVenda, erroLabel, sucessoLabel;
 
     @FXML private TableView<Venda> tabelaVendas;
     @FXML private TableColumn<Venda, Integer> colId, colNumero;
@@ -70,8 +71,10 @@ public class VendasController implements Initializable {
     private boolean isCarregandoEdicao = false;
     private FilteredList<Venda> listaFiltrada;
     private Venda vendaEmEdicao = null;
+
     private File arquivoNotaSelecionado = null;
     private File arquivoComprovanteSelecionado = null;
+    private File arquivoVendaSelecionado = null;
 
     private static final String APP_DIR = System.getProperty("user.home") + File.separator + "GerenciadorApp";
     private static final String PDF_VENDAS_DIR = APP_DIR + File.separator + "PDF" + File.separator + "Vendas";
@@ -102,7 +105,6 @@ public class VendasController implements Initializable {
         configurarLimitadores();
         configurarCss();
 
-        // Força apenas números no campo de numero da venda
         txtNumeroVenda.textProperty().addListener((obs, oldText, newText) -> {
             if (!newText.matches("\\d*")) {
                 txtNumeroVenda.setText(newText.replaceAll("[^\\d]", ""));
@@ -238,17 +240,25 @@ public class VendasController implements Initializable {
         } return FXCollections.observableArrayList();
     }
 
+    // ALTERAÇÃO AQUI: Agora a gente vai buscar a instância oficial e atualizada do DadosRepositorio
     private void gerarCamposMatrizComposicao(Produto produto, VendaRowUI row) {
         row.vboxMateriasPrimasLista.getChildren().clear(); row.mapComposicaoInputs.clear();
-        for (MateriaPrima mp : produto.getMateriasPrimasNecessarias()) {
+        for (MateriaPrima mpBase : produto.getMateriasPrimasNecessarias()) {
+
+            // Busca a instância atualizada do Repositório para ter acesso ao estoque real
+            MateriaPrima mpAtualizada = DadosRepositorio.getMateriasPrimas().stream()
+                    .filter(m -> m.getId() != null && m.getId().equals(mpBase.getId()))
+                    .findFirst()
+                    .orElse(mpBase);
+
             HBox hbox = new HBox(10); hbox.setAlignment(Pos.CENTER_LEFT);
-            Label lbl = new Label(mp.getNome() + " (" + mp.getUnidade() + "):"); lbl.setPrefWidth(200); lbl.getStyleClass().add("labels-formulario");
+            Label lbl = new Label(mpAtualizada.getNome() + " (" + mpAtualizada.getUnidade() + "):"); lbl.setPrefWidth(200); lbl.getStyleClass().add("labels-formulario");
             TextField txtQtdMP = new TextField(); txtQtdMP.setPromptText("Qtd"); txtQtdMP.getStyleClass().add("textFields-formulario"); txtQtdMP.setPrefWidth(120);
             HBox.setHgrow(txtQtdMP, Priority.ALWAYS); aplicarMascaraValorUnidade(txtQtdMP);
 
             txtQtdMP.textProperty().addListener((obs, oldV, newV) -> marcarCampoInvalido(txtQtdMP, false));
 
-            row.mapComposicaoInputs.put(mp, txtQtdMP); hbox.getChildren().addAll(lbl, txtQtdMP); row.vboxMateriasPrimasLista.getChildren().add(hbox);
+            row.mapComposicaoInputs.put(mpAtualizada, txtQtdMP); hbox.getChildren().addAll(lbl, txtQtdMP); row.vboxMateriasPrimasLista.getChildren().add(hbox);
         }
         row.boxProdutoMP.setVisible(true); row.boxProdutoMP.setManaged(true);
     }
@@ -310,7 +320,7 @@ public class VendasController implements Initializable {
         checkEstaPago.selectedProperty().addListener((obs, oldVal, isPago) -> {
             boxPagamento.setVisible(isPago); boxPagamento.setManaged(isPago);
             if (isPago && dpDataPagamento.getValue() == null) dpDataPagamento.setValue(LocalDate.now());
-            if (!isPago) { arquivoComprovanteSelecionado = null; labelArquivoPdf.setText("Nenhum arquivo"); labelArquivoPdf.setStyle("-fx-text-fill: #777;"); marcarCampoInvalido(dpDataPagamento, false); }
+            if (!isPago) { arquivoComprovanteSelecionado = null; labelArquivoPdf.setText("Nenhum arquivo selecionado"); labelArquivoPdf.setStyle("-fx-text-fill: #777;"); marcarCampoInvalido(dpDataPagamento, false); }
         });
     }
 
@@ -405,21 +415,25 @@ public class VendasController implements Initializable {
             if (isPago) {
                 if (arquivoComprovanteSelecionado != null) bComp = Files.readAllBytes(arquivoComprovanteSelecionado.toPath());
                 else if (vendaEmEdicao != null) bComp = vendaEmEdicao.getComprovante();
-                if (bComp == null && (vendaEmEdicao == null || vendaEmEdicao.getNomeComprovante() == null)) { mostrarErro("Anexe o comprovante."); return; }
             }
+            byte[] bArqVenda = null; if (arquivoVendaSelecionado != null) bArqVenda = Files.readAllBytes(arquivoVendaSelecionado.toPath()); else if (vendaEmEdicao != null) bArqVenda = vendaEmEdicao.getArquivoVenda();
 
             String nmNota = (vendaEmEdicao != null) ? vendaEmEdicao.getNomeNotaFiscal() : null;
             if (arquivoNotaSelecionado != null) { nmNota = "NF_" + System.currentTimeMillis() + "_" + arquivoNotaSelecionado.getName(); Files.copy(arquivoNotaSelecionado.toPath(), new File(PDF_VENDAS_DIR, nmNota).toPath(), StandardCopyOption.REPLACE_EXISTING); }
+
             String nmComp = (vendaEmEdicao != null) ? vendaEmEdicao.getNomeComprovante() : null;
             if (isPago && arquivoComprovanteSelecionado != null) { nmComp = "COMP_" + System.currentTimeMillis() + "_" + arquivoComprovanteSelecionado.getName(); Files.copy(arquivoComprovanteSelecionado.toPath(), new File(PDF_VENDAS_DIR, nmComp).toPath(), StandardCopyOption.REPLACE_EXISTING); }
 
+            String nmArqVenda = (vendaEmEdicao != null) ? vendaEmEdicao.getNomeArquivoVenda() : null;
+            if (arquivoVendaSelecionado != null) { nmArqVenda = "ARQ_" + System.currentTimeMillis() + "_" + arquivoVendaSelecionado.getName(); Files.copy(arquivoVendaSelecionado.toPath(), new File(PDF_VENDAS_DIR, nmArqVenda).toPath(), StandardCopyOption.REPLACE_EXISTING); }
+
             if (vendaEmEdicao == null) {
-                Venda nv = new Venda(numVenda, dtVenda, cliente, novosItens, isPago, dtLimite, dtPgto, bNota, bComp, txtObservacao.getText());
-                nv.setNomeNotaFiscal(nmNota); nv.setNomeComprovante(nmComp);
+                Venda nv = new Venda(numVenda, dtVenda, cliente, novosItens, isPago, dtLimite, dtPgto, bNota, bComp, bArqVenda, txtObservacao.getText());
+                nv.setNomeNotaFiscal(nmNota); nv.setNomeComprovante(nmComp); nv.setNomeArquivoVenda(nmArqVenda);
                 DadosRepositorio.adicionarVenda(nv); mostrarSucesso("Venda cadastrada!");
             } else {
-                vendaEmEdicao.atualizarDados(numVenda, dtVenda, cliente, novosItens, isPago, dtLimite, dtPgto, bNota, bComp, txtObservacao.getText());
-                vendaEmEdicao.setNomeNotaFiscal(nmNota); vendaEmEdicao.setNomeComprovante(nmComp);
+                vendaEmEdicao.atualizarDados(numVenda, dtVenda, cliente, novosItens, isPago, dtLimite, dtPgto, bNota, bComp, bArqVenda, txtObservacao.getText());
+                vendaEmEdicao.setNomeNotaFiscal(nmNota); vendaEmEdicao.setNomeComprovante(nmComp); vendaEmEdicao.setNomeArquivoVenda(nmArqVenda);
                 DadosRepositorio.atualizarVenda(vendaEmEdicao); ativarModoCadastro(); mostrarSucesso("Venda atualizada!");
             }
             limparInputs();
@@ -456,6 +470,8 @@ public class VendasController implements Initializable {
             }
 
             if (venda.getNomeNotaFiscal() != null) { labelArquivoPNG.setText("Ver: " + venda.getNomeNotaFiscal()); labelArquivoPNG.setStyle("-fx-text-fill: #00A593; -fx-cursor: hand; -fx-underline: true;"); }
+            if (venda.getNomeArquivoVenda() != null) { labelArquivoVenda.setText("Ver: " + venda.getNomeArquivoVenda()); labelArquivoVenda.setStyle("-fx-text-fill: #00A593; -fx-cursor: hand; -fx-underline: true;"); }
+
             checkEstaPago.setSelected(venda.getEstaPago());
             if (venda.getEstaPago()) {
                 dpDataPagamento.setValue(venda.getDataPagamento());
@@ -471,6 +487,7 @@ public class VendasController implements Initializable {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         colDataVenda.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDataTransacao().format(dtf)));
         colCliente.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getCliente().getNomePrincipal()));
+
         colTipo.setCellValueFactory(c -> {
             List<Venda.ItemVenda> itens = c.getValue().getItens();
             StringBuilder sb = new StringBuilder();
@@ -551,9 +568,13 @@ public class VendasController implements Initializable {
         txtNumeroVenda.clear();
         dpDataVenda.setValue(LocalDate.now()); dpDataLimite.setValue(LocalDate.now().plusMonths(1)); dpDataPagamento.setValue(null);
         cbCliente.setValue(null); txtObservacao.clear(); checkEstaPago.setSelected(false); lblValorTotal.setText("R$ 0,00");
-        arquivoNotaSelecionado = null; arquivoComprovanteSelecionado = null;
-        labelArquivoPNG.setText("Nenhum arquivo"); labelArquivoPNG.setStyle("-fx-text-fill: #777; -fx-underline: false;");
-        labelArquivoPdf.setText("Nenhum arquivo"); labelArquivoPdf.setStyle("-fx-text-fill: #777; -fx-underline: false;");
+
+        arquivoNotaSelecionado = null; arquivoComprovanteSelecionado = null; arquivoVendaSelecionado = null;
+
+        labelArquivoPNG.setText("Nenhum arquivo selecionado"); labelArquivoPNG.setStyle("-fx-text-fill: #777; -fx-underline: false;");
+        labelArquivoPdf.setText("Nenhum arquivo selecionado"); labelArquivoPdf.setStyle("-fx-text-fill: #777; -fx-underline: false;");
+        labelArquivoVenda.setText("Nenhum arquivo selecionado"); labelArquivoVenda.setStyle("-fx-text-fill: #777; -fx-underline: false;");
+
         cbNumeroItens.setValue(new BigDecimal("1")); gerarCamposItens(1);
     }
 
@@ -563,6 +584,7 @@ public class VendasController implements Initializable {
             try {
                 if (venda.getNomeNotaFiscal() != null) new File(PDF_VENDAS_DIR, venda.getNomeNotaFiscal()).delete();
                 if (venda.getNomeComprovante() != null) new File(PDF_VENDAS_DIR, venda.getNomeComprovante()).delete();
+                if (venda.getNomeArquivoVenda() != null) new File(PDF_VENDAS_DIR, venda.getNomeArquivoVenda()).delete();
                 DadosRepositorio.removerVenda(venda); mostrarSucesso("Venda removida");
             } catch (Exception e) { mostrarErro("Erro ao remover"); }
         }
@@ -589,6 +611,7 @@ public class VendasController implements Initializable {
         File f = fc.showOpenDialog(pane.getScene().getWindow());
         if (f != null) {
             if (btnUploadPNGvenda != null && event.getSource() == btnUploadPNGvenda) { arquivoNotaSelecionado = f; labelArquivoPNG.setText(f.getName()); labelArquivoPNG.setStyle("-fx-text-fill: #00A593; -fx-cursor: hand; -fx-underline: true;"); }
+            else if (btnUploadArquivoVenda != null && event.getSource() == btnUploadArquivoVenda) { arquivoVendaSelecionado = f; labelArquivoVenda.setText(f.getName()); labelArquivoVenda.setStyle("-fx-text-fill: #00A593; -fx-cursor: hand; -fx-underline: true;"); }
             else { arquivoComprovanteSelecionado = f; labelArquivoPdf.setText(f.getName()); labelArquivoPdf.setStyle("-fx-text-fill: #00A593; -fx-cursor: hand; -fx-underline: true;"); }
         }
     }
@@ -596,10 +619,12 @@ public class VendasController implements Initializable {
     @FXML private void visualizarPdf(MouseEvent event) {
         try {
             boolean isNotaFiscal = (event.getSource() == labelArquivoPNG);
-            File arquivoTemp = isNotaFiscal ? arquivoNotaSelecionado : arquivoComprovanteSelecionado;
+            boolean isArqVenda = (event.getSource() == labelArquivoVenda);
+
+            File arquivoTemp = isNotaFiscal ? arquivoNotaSelecionado : (isArqVenda ? arquivoVendaSelecionado : arquivoComprovanteSelecionado);
             String nomeSalvo = null;
             if (arquivoTemp != null) { abrirArquivo(arquivoTemp); return; }
-            if (vendaEmEdicao != null) nomeSalvo = isNotaFiscal ? vendaEmEdicao.getNomeNotaFiscal() : vendaEmEdicao.getNomeComprovante();
+            if (vendaEmEdicao != null) nomeSalvo = isNotaFiscal ? vendaEmEdicao.getNomeNotaFiscal() : (isArqVenda ? vendaEmEdicao.getNomeArquivoVenda() : vendaEmEdicao.getNomeComprovante());
             if (nomeSalvo == null) { mostrarErro("Nenhum arquivo"); return; }
             File arquivo = new File(PDF_VENDAS_DIR, nomeSalvo);
             if (!arquivo.exists()) { mostrarErro("Arquivo não encontrado."); return; }

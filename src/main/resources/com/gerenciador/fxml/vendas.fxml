@@ -46,6 +46,14 @@
                                                     <Label styleClass="labels-formulario" text="Número da Venda" />
                                                     <TextField fx:id="txtNumeroVenda" maxWidth="1.7976931348623157E308" promptText="Digite o número da venda" styleClass="textFields-formulario" text="" />
                                                 </VBox>
+
+                                                <VBox spacing="5.0">
+                                                    <Label styleClass="labels-formulario" text="Arquivo da Venda" />
+                                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                        <Button  HBox.hgrow="ALWAYS" fx:id="btnUploadArquivoVenda" onAction="#selecionarPdf" style="-fx-padding: 8px 15px; -fx-background-color: #E0E0E0; -fx-background-radius: 5px; -fx-cursor: hand;" text="Selecionar Arquivo" />
+                                                        <Label fx:id="labelArquivoVenda" minWidth="200" prefWidth="200" onMouseClicked="#visualizarPdf" styleClass="label-arquivo-vazio" text="Nenhum arquivo selecionado" />
+                                                    </HBox>
+                                                </VBox>
                                                 <VBox spacing="5.0">
                                                     <Label styleClass="labels-formulario" text="Nota Fiscal da Venda" />
                                                     <HBox alignment="CENTER_LEFT" spacing="10.0">
